@@ -1,0 +1,28 @@
+/*
+ * 全域基礎樣式
+ * --------------------------------------------------
+ * 這個檔案定義了整個網站的基礎樣式，
+ * 包括全域重設、字體、背景顏色和主要容器的設定。
+ */
+
+/* 全域重設：移除所有元素的預設邊距和內距，並設定 box-sizing */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 基礎頁面樣式：設定字體、背景、文字顏色等 */
+body {
+    font-family: 'Roboto', sans-serif; /* 使用 Google Font 的 Roboto 字體 */
+    background-color: var(--md-sys-color-surface); /* 使用 tokens 定義的表面顏色 */
+    color: var(--md-sys-color-on-surface); /* 使用 tokens 定義的表面文字顏色 */
+    padding: 24px;
+    min-height: 100vh;
+}
+
+/* 主要內容容器：設定最大寬度和置中 */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+} 
