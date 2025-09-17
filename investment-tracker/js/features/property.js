@@ -88,6 +88,14 @@ export function addPropertyRecord() {
     updateAllTablesAndSummary();
     saveToLocalStorage();
     
+    // 添加成功動畫
+    if (typeof window.addButtonSuccessAnimation === 'function') {
+        const button = document.querySelector('#property .growth-action');
+        const card = button?.closest('.card');
+        if (button) window.addButtonSuccessAnimation(button);
+        if (card) window.triggerSuccessAnimation(card);
+    }
+    
     // 清空表單
     ['propertyName', 'propertyTotal', 'propertyDown', 'propertyLoan', 'propertyRate', 'propertyYears'].forEach(id => document.getElementById(id).value = '');
 }
@@ -156,6 +164,14 @@ export function addPaymentRecord() {
     paymentRecords.push({ id: Date.now(), date, amount, principal, interest });
     updateAllTablesAndSummary();
     saveToLocalStorage();
+    
+    // 添加成功動畫
+    if (typeof window.addButtonSuccessAnimation === 'function') {
+        const button = document.querySelector('#property .action-theme .filled-button');
+        const card = button?.closest('.card');
+        if (button) window.addButtonSuccessAnimation(button);
+        if (card) window.triggerSuccessAnimation(card);
+    }
     
     ['paymentDate', 'paymentAmount', 'principalAmount', 'interestAmount'].forEach(id => {
         const el = document.getElementById(id);

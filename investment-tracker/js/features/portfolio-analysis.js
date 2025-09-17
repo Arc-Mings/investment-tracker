@@ -135,8 +135,7 @@ function updatePortfolioOverviewTable() {
             currentValue: currentValue.toLocaleString(),
             unrealizedPL: unrealizedPL,
             returnRate: returnRate,
-            currency: holding.market === '台股' ? 'TWD' : 'USD',
-            action: `quickSell('${holding.market}', '${holding.code}', ${holding.totalShares})`
+            currency: holding.market === '台股' ? 'TWD' : 'USD'
         });
     });
 
@@ -176,7 +175,6 @@ function updatePortfolioOverviewTable() {
             unrealizedPL: unrealizedPL,
             returnRate: returnRate,
             currency: 'TWD',
-            action: `quickSellCrypto('${holding.symbol}', ${holding.totalAmount})`,
             symbol: holding.symbol, // 新增這個欄位用於單獨統計
             individualValue: currentValue // 新增這個欄位用於單獨統計
         });

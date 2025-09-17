@@ -139,15 +139,6 @@
                     <span class="material-icons">storage</span>
                     <span class="status-text">連線中...</span>
                 </div>
-                <button class="app-menu-button" id="appMenuButton" title="應用程式選單">
-                    <span class="material-icons">more_vert</span>
-                </button>
-                <div class="app-menu" id="appMenu" style="display: none;">
-                    <div class="app-menu-item" onclick="exitApplication()">
-                        <span class="material-icons">exit_to_app</span>
-                        完全退出程式
-                    </div>
-                </div>
             </div>
         </header>
         
@@ -192,7 +183,7 @@
                     
                     <div class="form-section">
                         <h4 class="form-section-title">基本資訊</h4>
-                        <div class="form-row core-fields">
+                        <div class="form-row core-fields buy-form">
                             <div class="text-field">
                                 <select id="buyStockMarket" onchange="updateBuyStockForm()">
                                     <option value="台股">台股 (TWD)</option>
@@ -211,10 +202,6 @@
                                 <input type="text" id="buyStockCode" placeholder=" " required>
                                 <label>股票代號</label>
                             </div>
-                            <div class="text-field">
-                                <input type="text" id="buyStockName" placeholder=" " required>
-                                <label>公司名稱</label>
-                            </div>
                         </div>
                     </div>
                     
@@ -227,11 +214,11 @@
                             </div>
                             <div class="text-field">
                                 <input type="number" id="buyStockShares" placeholder=" " min="0" step="1" required>
-                                <label>股數</label>
+                                <label>買入股數</label>
                             </div>
                             <div class="text-field">
                                 <input type="number" step="0.01" id="buyStockPrice" placeholder=" " min="0" required>
-                                <label id="buyStockPriceLabel">價格 (TWD)</label>
+                                <label id="buyStockPriceLabel">買入價格 (TWD)</label>
                             </div>
                             <div class="text-field">
                                 <input type="number" step="1" id="buyStockFee" placeholder=" " min="0" required>
@@ -280,8 +267,8 @@
                                 <label>股票代號</label>
                             </div>
                             <div class="text-field">
-                                <input type="text" id="sellStockName" placeholder=" " required>
-                                <label>公司名稱</label>
+                                <input type="date" id="sellStockDate" required>
+                                <label>交易日期</label>
                             </div>
                         </div>
                     </div>
@@ -290,19 +277,13 @@
                         <h4 class="form-section-title">交易詳情</h4>
                         <div class="form-row">
                             <div class="text-field">
-                                <input type="date" id="sellStockDate" required>
-                                <label>交易日期</label>
-                            </div>
-                            <div class="text-field">
                                 <input type="number" id="sellStockShares" placeholder=" " min="0" step="1" required>
-                                <label>股數</label>
+                                <label>賣出股數</label>
                             </div>
                             <div class="text-field">
                                 <input type="number" step="0.01" id="sellStockPrice" placeholder=" " min="0" required>
-                                <label id="sellStockPriceLabel">價格 (TWD)</label>
+                                <label id="sellStockPriceLabel">賣出價格 (TWD)</label>
                             </div>
-                        </div>
-                        <div class="form-row">
                             <div class="text-field">
                                 <input type="number" step="1" id="sellStockFee" placeholder=" " min="0" required>
                                 <label id="sellStockFeeLabel">手續費 (台股整數)</label>
@@ -340,7 +321,6 @@
                                 <th>持股數量</th>
                                 <th>平均成本</th>
                                 <th>持倉價值</th>
-                                <th>操作</th>
                             </tr>
                         </thead>
                         <tbody id="stockHoldingsTableBody"></tbody>
@@ -451,7 +431,6 @@
                                 <th>持有單位數</th>
                                 <th>平均淨值</th>
                                 <th>持倉價值</th>
-                                <th>操作</th>
                             </tr>
                         </thead>
                         <tbody id="fundHoldingsTableBody"></tbody>
@@ -494,7 +473,7 @@
                     
                     <div class="form-section">
                         <h4 class="form-section-title">交易基本資訊</h4>
-                        <div class="form-row core-fields">
+                        <div class="form-row core-fields crypto-form">
                             <div class="text-field">
                                 <input type="text" id="cryptoSymbol" placeholder=" " list="cryptoSymbolList" required>
                                 <datalist id="cryptoSymbolList">
@@ -528,7 +507,7 @@
                     
                     <div class="form-section">
                         <h4 class="form-section-title">交易詳情</h4>
-                        <div class="form-row">
+                        <div class="form-row crypto-form">
                             <div class="text-field">
                                 <input type="text" id="cryptoAmount" placeholder="例如: 0.00000001" pattern="[0-9]*\.?[0-9]*" inputmode="decimal" required>
                                 <label>數量</label>
@@ -567,7 +546,6 @@
                                 <th>持有數量</th>
                                 <th>平均成本 (TWD)</th>
                                 <th>持倉價值 (TWD)</th>
-                                <th>操作</th>
                             </tr>
                         </thead>
                         <tbody id="cryptoHoldingsTableBody"></tbody>
@@ -610,7 +588,7 @@
                     
                     <div class="form-section">
                         <h4 class="form-section-title">物件基本資料</h4>
-                        <div class="form-row core-fields">
+                        <div class="form-row core-fields property-form">
                             <div class="text-field">
                                 <input type="text" id="propertyName" placeholder=" " required>
                                 <label>物件名稱</label>
@@ -628,7 +606,7 @@
                     
                     <div class="form-section">
                         <h4 class="form-section-title">貸款條件</h4>
-                        <div class="form-row">
+                        <div class="form-row property-form">
                             <div class="text-field">
                                 <input type="number" id="propertyLoan" placeholder=" " min="0" required>
                                 <label>貸款金額</label>
@@ -1038,18 +1016,18 @@
             }
         }
         
-        // 添加成功動畫效果
-        function triggerSuccessAnimation(element) {
+        // 添加成功動畫效果 - 全局可用
+        window.triggerSuccessAnimation = function(element) {
             if (element) {
                 element.classList.add('success-animation');
                 setTimeout(() => {
                     element.classList.remove('success-animation');
                 }, 600);
             }
-        }
+        };
         
-        // 添加按鈕成功回饋
-        function addButtonSuccessAnimation(buttonElement) {
+        // 添加按鈕成功回饋 - 全局可用
+        window.addButtonSuccessAnimation = function(buttonElement) {
             if (buttonElement) {
                 buttonElement.classList.add('button-success-animation');
                 const originalText = buttonElement.innerHTML;
@@ -1060,7 +1038,7 @@
                     buttonElement.innerHTML = originalText;
                 }, 1500);
             }
-        }
+        };
         
         // 智慧表單驗證回饋
         function addFormValidationFeedback() {
@@ -1091,48 +1069,6 @@
             });
         }
         
-        // 應用程式選單控制
-        document.addEventListener('DOMContentLoaded', function() {
-            const menuButton = document.getElementById('appMenuButton');
-            const menu = document.getElementById('appMenu');
-            
-            if (menuButton && menu) {
-                menuButton.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-                });
-                
-                // 點擊其他地方關閉選單
-                document.addEventListener('click', function() {
-                    menu.style.display = 'none';
-                });
-                
-                menu.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                });
-            }
-        });
-        
-        
-        // 退出應用程式函數 - 使用自定義對話框
-        async function exitApplication() {
-            const confirmed = await window.showCustomDialog({
-                icon: 'exit_to_app',
-                title: '退出應用程式',
-                message: '確定要完全退出投資紀錄表嗎？\n您的資料已自動儲存。',
-                confirmText: '退出',
-                cancelText: '取消',
-                type: 'danger'
-            });
-            
-            if (confirmed) {
-                if (window.electronAPI) {
-                    window.electronAPI.quit();
-                } else {
-                    window.close();
-                }
-            }
-        }
         
         // 初始化M3 Expressive功能
         document.addEventListener('DOMContentLoaded', function() {
@@ -1169,89 +1105,6 @@
                 observer.observe(card);
             });
         });
-        
-        // 覆寫原有的addStockBuyRecord函數，添加動畫效果
-        const originalAddStockBuyRecord = window.addStockBuyRecord;
-        if (originalAddStockBuyRecord) {
-            window.addStockBuyRecord = function() {
-                const button = document.querySelector('.growth-action');
-                const card = button.closest('.card');
-                
-                // 調用原函數
-                originalAddStockBuyRecord();
-                
-                // 添加成功動畫
-                addButtonSuccessAnimation(button);
-                triggerSuccessAnimation(card);
-            };
-        }
-        
-        // 覆寫原有的addStockSellRecord函數，添加動畫效果
-        const originalAddStockSellRecord = window.addStockSellRecord;
-        if (originalAddStockSellRecord) {
-            window.addStockSellRecord = function() {
-                const button = document.querySelector('.action-theme .filled-button');
-                const card = button.closest('.card');
-                
-                // 調用原函數
-                originalAddStockSellRecord();
-                
-                // 添加成功動畫
-                addButtonSuccessAnimation(button);
-                triggerSuccessAnimation(card);
-            };
-        }
-        
-        // 覆寫基金相關函數
-        const originalAddFundRecord = window.addFundRecord;
-        if (originalAddFundRecord) {
-            window.addFundRecord = function() {
-                const button = document.querySelector('#funds .growth-action');
-                const card = button.closest('.card');
-                
-                originalAddFundRecord();
-                addButtonSuccessAnimation(button);
-                triggerSuccessAnimation(card);
-            };
-        }
-        
-        // 覆寫加密貨幣相關函數
-        const originalAddCryptoRecord = window.addCryptoRecord;
-        if (originalAddCryptoRecord) {
-            window.addCryptoRecord = function() {
-                const button = document.querySelector('#crypto .action-theme .filled-button');
-                const card = button.closest('.card');
-                
-                originalAddCryptoRecord();
-                addButtonSuccessAnimation(button);
-                triggerSuccessAnimation(card);
-            };
-        }
-        
-        // 覆寫房產相關函數
-        const originalAddPropertyRecord = window.addPropertyRecord;
-        if (originalAddPropertyRecord) {
-            window.addPropertyRecord = function() {
-                const button = document.querySelector('#property .growth-action');
-                const card = button.closest('.card');
-                
-                originalAddPropertyRecord();
-                addButtonSuccessAnimation(button);
-                triggerSuccessAnimation(card);
-            };
-        }
-        
-        const originalAddPaymentRecord = window.addPaymentRecord;
-        if (originalAddPaymentRecord) {
-            window.addPaymentRecord = function() {
-                const button = document.querySelector('#property .action-theme .filled-button');
-                const card = button.closest('.card');
-                
-                originalAddPaymentRecord();
-                addButtonSuccessAnimation(button);
-                triggerSuccessAnimation(card);
-            };
-        }
     </script>
 </body>
 </html> 

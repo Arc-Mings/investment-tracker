@@ -153,6 +153,14 @@ export function addFundRecord() {
     updateFundHoldingsTable();
     saveToLocalStorage();
     
+    // 添加成功動畫
+    if (typeof window.addButtonSuccessAnimation === 'function') {
+        const button = document.querySelector('#funds .growth-action');
+        const card = button?.closest('.card');
+        if (button) window.addButtonSuccessAnimation(button);
+        if (card) window.triggerSuccessAnimation(card);
+    }
+    
     // 清空表單
     document.getElementById('fundName').value = '';
     document.getElementById('fundAmount').value = '';
@@ -195,6 +203,13 @@ export function updateFundHoldingsTable() {
 
     const holdings = calculateFundHoldings();
     
+    // 按最後交易日期降序排列（最新的在最上面）
+    holdings.sort((a, b) => {
+        const lastDateA = Math.max(...a.transactions.map(t => new Date(t.date)));
+        const lastDateB = Math.max(...b.transactions.map(t => new Date(t.date)));
+        return lastDateB - lastDateA;
+    });
+    
     tableBody.innerHTML = holdings.map(holding => {
         const totalValue = holding.totalUnits * holding.averageNav;
         
@@ -204,32 +219,11 @@ export function updateFundHoldingsTable() {
                 <td>${holding.totalUnits.toFixed(4)}</td>
                 <td>${holding.averageNav.toFixed(4)}</td>
                 <td>${totalValue.toLocaleString()}</td>
-                <td>
-                    <button class="outlined-button" onclick="quickRedeem('${holding.name}', ${holding.totalUnits})">
-                        <span class="material-icons">sell</span>
-                        快速贖回
-                    </button>
-                </td>
             </tr>
         `;
     }).join('');
 }
 
-/**
- * 快速贖回功能
- * @param {string} name - 基金名稱
- * @param {number} maxUnits - 最大可贖回單位數
- */
-window.quickRedeem = function(name, maxUnits) {
-    // 填入表單
-    document.getElementById('fundType').value = '贖回';
-    document.getElementById('fundName').value = name;
-    document.getElementById('fundUnits').value = maxUnits.toFixed(4);
-    
-    // 滾動到表單位置
-    document.getElementById('fundName').scrollIntoView({ behavior: 'smooth' });
-    document.getElementById('fundNav').focus();
-};
 
 /**
  * 根據 ID 刪除一筆基金紀錄。

@@ -213,6 +213,14 @@ export function addCryptoRecord() {
     updateCryptoSymbolDatalist(); // 更新下拉選單
     saveToLocalStorage();
 
+    // 添加成功動畫
+    if (typeof window.addButtonSuccessAnimation === 'function') {
+        const button = document.querySelector('#crypto .action-theme .filled-button');
+        const card = button?.closest('.card');
+        if (button) window.addButtonSuccessAnimation(button);
+        if (card) window.triggerSuccessAnimation(card);
+    }
+
     document.getElementById('cryptoSymbol').value = '';
     document.getElementById('cryptoAmount').value = '';
     document.getElementById('cryptoPrice').value = '';
@@ -253,6 +261,13 @@ export function updateCryptoHoldingsTable() {
 
     const holdings = calculateCryptoHoldings();
     
+    // 按最後交易日期降序排列（最新的在最上面）
+    holdings.sort((a, b) => {
+        const lastDateA = Math.max(...a.transactions.map(t => new Date(t.date)));
+        const lastDateB = Math.max(...b.transactions.map(t => new Date(t.date)));
+        return lastDateB - lastDateA;
+    });
+    
     tableBody.innerHTML = holdings.map(holding => {
         const totalValue = holding.totalAmount * holding.averagePrice;
         
@@ -262,32 +277,10 @@ export function updateCryptoHoldingsTable() {
                 <td>${formatCryptoAmount(holding.totalAmount)}</td>
                 <td>TWD ${holding.averagePrice.toFixed(2)}</td>
                 <td>TWD ${totalValue.toLocaleString()}</td>
-                <td>
-                    <button class="outlined-button" onclick="quickSellCrypto('${holding.symbol}', ${holding.totalAmount})">
-                        <span class="material-icons">sell</span>
-                        快速賣出
-                    </button>
-                </td>
             </tr>
         `;
     }).join('');
 }
-
-/**
- * 快速賣出加密貨幣功能
- * @param {string} symbol - 幣種符號
- * @param {number} maxAmount - 最大可賣數量
- */
-window.quickSellCrypto = function(symbol, maxAmount) {
-    // 填入表單
-    document.getElementById('cryptoSymbol').value = symbol;
-    document.getElementById('cryptoType').value = '賣出';
-    document.getElementById('cryptoAmount').value = formatCryptoAmount(maxAmount);
-    
-    // 滾動到表單位置
-    document.getElementById('cryptoSymbol').scrollIntoView({ behavior: 'smooth' });
-    document.getElementById('cryptoPrice').focus();
-};
 
 /**
  * 根據 ID 刪除一筆加密貨幣紀錄。
