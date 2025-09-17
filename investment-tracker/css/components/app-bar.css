@@ -1,0 +1,64 @@
+/*
+ * App Bar 元件樣式
+ * --------------------------------------------------
+ * 頂部應用程式標題列的樣式。
+ */
+
+.app-bar {
+    background-color: var(--md-sys-color-surface-container); /* 背景顏色 */
+    border-radius: 28px; /* 圓角 */
+    padding: 16px 24px; /* 內距 */
+    margin-bottom: 24px; /* 底部外距 */
+    box-shadow: var(--md-sys-elevation-level2); /* 陰影效果 */
+    display: flex; /* 彈性佈局 */
+    align-items: center; /* 垂直置中 */
+    justify-content: space-between; /* 兩端對齊 */
+}
+
+.app-bar h1 {
+    font-size: 32px; /* 標題字體大小 */
+    font-weight: 400; /* 字體粗細 */
+    color: var(--md-sys-color-on-surface); /* 文字顏色 */
+    margin: 0; /* 無外距 */
+    flex: 1; /* 佔滿剩餘空間 */
+    text-align: center; /* 文字置中 */
+}
+
+.app-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.database-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 20px;
+    background-color: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.database-status:hover {
+    background-color: var(--md-sys-color-tertiary-container);
+    color: var(--md-sys-color-on-tertiary-container);
+}
+
+.database-status .material-icons {
+    font-size: 18px;
+}
+
+.database-status.connected {
+    background-color: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+}
+
+.database-status.disconnected {
+    background-color: var(--md-sys-color-error-container);
+    color: var(--md-sys-color-on-error-container);
+} 
