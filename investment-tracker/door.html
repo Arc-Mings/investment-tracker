@@ -23,6 +23,112 @@
     <!-- Electron 應用程式：資料庫服務已整合到後端 -->
     <!-- Main JavaScript -->
     <script type="module" src="js/main.js"></script>
+    
+    <!-- 全局自定義對話框 -->
+    <script>
+        // 讓自定義對話框函數全局可用
+        window.showCustomDialog = function(options) {
+            return new Promise((resolve) => {
+                const overlay = document.createElement('div');
+                overlay.className = 'custom-dialog-overlay';
+                
+                const dialog = document.createElement('div');
+                dialog.className = 'custom-dialog';
+                
+                const header = document.createElement('div');
+                header.className = 'custom-dialog-header';
+                
+                const icon = document.createElement('span');
+                icon.className = 'material-icons custom-dialog-icon';
+                icon.textContent = options.icon || 'info';
+                
+                const title = document.createElement('h3');
+                title.className = 'custom-dialog-title';
+                title.textContent = options.title || '確認';
+                
+                header.appendChild(icon);
+                header.appendChild(title);
+                
+                const content = document.createElement('div');
+                content.className = 'custom-dialog-content';
+                content.innerHTML = (options.message || '').replace(/\n/g, '<br>');
+                
+                const actions = document.createElement('div');
+                actions.className = 'custom-dialog-actions';
+                
+                // 取消按鈕
+                if (options.showCancel !== false) {
+                    const cancelBtn = document.createElement('button');
+                    cancelBtn.className = 'custom-dialog-button secondary';
+                    cancelBtn.textContent = options.cancelText || '取消';
+                    cancelBtn.onclick = () => {
+                        hideDialog();
+                        resolve(false);
+                    };
+                    actions.appendChild(cancelBtn);
+                }
+                
+                // 確認按鈕
+                const confirmBtn = document.createElement('button');
+                confirmBtn.className = `custom-dialog-button ${options.type === 'danger' ? 'danger' : 'primary'}`;
+                confirmBtn.textContent = options.confirmText || '確認';
+                confirmBtn.onclick = () => {
+                    hideDialog();
+                    resolve(true);
+                };
+                actions.appendChild(confirmBtn);
+                
+                dialog.appendChild(header);
+                dialog.appendChild(content);
+                dialog.appendChild(actions);
+                overlay.appendChild(dialog);
+                document.body.appendChild(overlay);
+                
+                function hideDialog() {
+                    overlay.classList.remove('show');
+                    setTimeout(() => {
+                        if (document.body.contains(overlay)) {
+                            document.body.removeChild(overlay);
+                        }
+                    }, 300);
+                }
+                
+                // 顯示對話框
+                setTimeout(() => {
+                    overlay.classList.add('show');
+                }, 10);
+                
+                // ESC 鍵關閉
+                const handleKeydown = (e) => {
+                    if (e.key === 'Escape') {
+                        hideDialog();
+                        resolve(false);
+                        document.removeEventListener('keydown', handleKeydown);
+                    }
+                };
+                document.addEventListener('keydown', handleKeydown);
+                
+                // 點擊背景關閉
+                overlay.onclick = (e) => {
+                    if (e.target === overlay) {
+                        hideDialog();
+                        resolve(false);
+                    }
+                };
+            });
+        };
+        
+        // 便捷確認函數
+        window.customConfirm = function(message, title = '確認') {
+            return window.showCustomDialog({
+                icon: 'help_outline',
+                title: title,
+                message: message,
+                confirmText: '確認',
+                cancelText: '取消'
+            });
+        };
+    </script>
 </head>
 <body>
     <div class="container">
@@ -32,6 +138,15 @@
                 <div class="database-status" id="databaseStatus" title="資料庫連線狀態">
                     <span class="material-icons">storage</span>
                     <span class="status-text">連線中...</span>
+                </div>
+                <button class="app-menu-button" id="appMenuButton" title="應用程式選單">
+                    <span class="material-icons">more_vert</span>
+                </button>
+                <div class="app-menu" id="appMenu" style="display: none;">
+                    <div class="app-menu-item" onclick="exitApplication()">
+                        <span class="material-icons">exit_to_app</span>
+                        完全退出程式
+                    </div>
                 </div>
             </div>
         </header>
@@ -974,6 +1089,49 @@
                     });
                 }
             });
+        }
+        
+        // 應用程式選單控制
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuButton = document.getElementById('appMenuButton');
+            const menu = document.getElementById('appMenu');
+            
+            if (menuButton && menu) {
+                menuButton.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+                });
+                
+                // 點擊其他地方關閉選單
+                document.addEventListener('click', function() {
+                    menu.style.display = 'none';
+                });
+                
+                menu.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
+        });
+        
+        
+        // 退出應用程式函數 - 使用自定義對話框
+        async function exitApplication() {
+            const confirmed = await window.showCustomDialog({
+                icon: 'exit_to_app',
+                title: '退出應用程式',
+                message: '確定要完全退出投資紀錄表嗎？\n您的資料已自動儲存。',
+                confirmText: '退出',
+                cancelText: '取消',
+                type: 'danger'
+            });
+            
+            if (confirmed) {
+                if (window.electronAPI) {
+                    window.electronAPI.quit();
+                } else {
+                    window.close();
+                }
+            }
         }
         
         // 初始化M3 Expressive功能

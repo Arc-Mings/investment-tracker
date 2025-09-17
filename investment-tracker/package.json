@@ -2,7 +2,7 @@
   "name": "investment-tracker",
   "version": "1.0.0",
   "description": "投資紀錄系統 - 阿嬤級友善版",
-  "main": "electron-working.js",
+  "main": "electron-main.js",
   "homepage": "./",
   "scripts": {
     "start": "electron .",
