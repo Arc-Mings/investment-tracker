@@ -1,0 +1,290 @@
+/*
+ * M3 Expressive Form 元件樣式
+ * --------------------------------------------------
+ * 基於Material Design 3 Expressive的情感支持表單設計
+ * 專為投資紀錄應用設計，減少使用焦慮，增加情感連結
+ */
+
+/* 表單行的 Grid 佈局 */
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 固定4欄佈局 */
+    gap: var(--md-sys-spacing-medium); /* 適中的間距 */
+    margin-bottom: var(--md-sys-spacing-large);
+}
+
+/* 
+ * 核心欄位組 - 視覺優先級最高
+ * --------------------------------------------------
+ */
+.form-row.core-fields {
+    grid-template-columns: repeat(4, 1fr); /* 核心欄位也是4欄 */
+    gap: var(--md-sys-spacing-medium);
+    margin-bottom: var(--md-sys-spacing-extra-large);
+}
+
+/* 
+ * 文字輸入區塊容器
+ * --------------------------------------------------
+ */
+.text-field {
+    position: relative;
+    /* 動態高度適應內容 */
+    min-height: 72px; /* 增加高度提供視覺呼吸空間 */
+}
+
+/* 
+ * 通用輸入框與下拉選單樣式
+ * --------------------------------------------------
+ */
+.text-field input,
+.text-field select {
+    width: 100%;
+    padding: 28px var(--md-sys-spacing-medium) 12px var(--md-sys-spacing-medium);
+    border: 2px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--md-sys-shape-corner-expressive-medium); /* 使用表達性圓角 */
+    background-color: var(--md-sys-color-surface-container-high);
+    color: var(--md-sys-color-on-surface);
+    font-family: 'Roboto', sans-serif;
+    font-size: var(--md-sys-typescale-body-large-font-size);
+    font-weight: var(--md-sys-typescale-body-large-font-weight);
+    line-height: var(--md-sys-typescale-body-large-line-height);
+    min-height: 68px;
+    
+    /* M3 Expressive 彈性動畫 */
+    transition: 
+        border-color var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-spring-gentle),
+        background-color var(--md-sys-motion-duration-medium1) var(--md-sys-motion-easing-emphasized),
+        box-shadow var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-spring-gentle),
+        transform var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-spring-snappy);
+}
+
+/* 
+ * 輸入框焦點狀態 - 智慧反饋
+ * --------------------------------------------------
+ */
+.text-field input:focus,
+.text-field select:focus {
+    outline: none;
+    border-color: var(--md-sys-color-primary);
+    background-color: var(--md-sys-color-surface-container-highest);
+    box-shadow: 
+        0 0 0 1px var(--md-sys-color-primary),
+        var(--md-sys-elevation-level2);
+    transform: translateY(-1px); /* 微妙的上浮效果 */
+}
+
+/* 
+ * 懸停狀態 - 鼓勵互動
+ * --------------------------------------------------
+ */
+.text-field input:hover:not(:focus),
+.text-field select:hover:not(:focus) {
+    border-color: var(--md-sys-color-on-surface);
+    background-color: var(--md-sys-color-surface-container-highest);
+    transform: translateY(-0.5px);
+}
+
+/* 
+ * 浮動標籤樣式 - 增強視覺層次
+ * --------------------------------------------------
+ */
+.text-field label {
+    position: absolute;
+    left: var(--md-sys-spacing-medium);
+    top: 8px; /* 固定在頂部位置 */
+    font-size: var(--md-sys-typescale-label-medium-font-size);
+    font-weight: var(--md-sys-typescale-label-medium-font-weight);
+    line-height: var(--md-sys-typescale-label-medium-line-height);
+    color: var(--md-sys-color-primary);
+    background-color: var(--md-sys-color-surface-container-high);
+    padding: 0 var(--md-sys-spacing-extra-small);
+    pointer-events: none;
+    z-index: 1;
+    
+    /* 平滑的標籤動畫 */
+    transition: 
+        color var(--md-sys-motion-duration-medium1) var(--md-sys-motion-easing-emphasized),
+        background-color var(--md-sys-motion-duration-medium1) var(--md-sys-motion-easing-emphasized);
+}
+
+/* 
+ * 標籤焦點狀態
+ * --------------------------------------------------
+ */
+.text-field input:focus + label,
+.text-field select:focus + label {
+    color: var(--md-sys-color-primary);
+    background-color: var(--md-sys-color-surface-container-highest);
+}
+
+/* 
+ * 錯誤狀態 - 溫和的警示設計
+ * --------------------------------------------------
+ */
+.text-field input:invalid:not(:placeholder-shown),
+.text-field.error input {
+    border-color: var(--md-sys-color-error);
+    background-color: var(--md-sys-color-error-container);
+}
+
+.text-field input:invalid:not(:placeholder-shown) + label,
+.text-field.error label {
+    color: var(--md-sys-color-error);
+}
+
+/* 
+ * 成功狀態 - 積極的反饋
+ * --------------------------------------------------
+ */
+.text-field.success input {
+    border-color: var(--md-sys-color-success);
+    background-color: var(--md-sys-color-success-container);
+}
+
+.text-field.success label {
+    color: var(--md-sys-color-success);
+}
+
+/* 
+ * 數字輸入特殊樣式
+ * --------------------------------------------------
+ */
+.text-field input[type="number"] {
+    text-align: right; /* 數字右對齊 */
+    font-weight: 500; /* 數字稍微加粗提高可讀性 */
+}
+
+/* 
+ * 日期輸入特殊樣式
+ * --------------------------------------------------
+ */
+.text-field input[type="date"] {
+    font-family: 'Roboto', sans-serif;
+    padding-right: var(--md-sys-spacing-extra-large); /* 為日期選擇器留空間 */
+}
+
+/* 
+ * 下拉選單特殊樣式
+ * --------------------------------------------------
+ */
+.text-field select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right var(--md-sys-spacing-medium) center;
+    background-size: 20px;
+    appearance: none;
+    padding-right: var(--md-sys-spacing-huge); /* 為箭頭留空間 */
+}
+
+/* 
+ * 必填欄位標示
+ * --------------------------------------------------
+ */
+.text-field input[required] + label::after {
+    content: ' *';
+    color: var(--md-sys-color-error);
+    font-weight: 700;
+}
+
+/* 
+ * 表單區塊分組
+ * --------------------------------------------------
+ */
+.form-section {
+    margin-bottom: var(--md-sys-spacing-huge);
+}
+
+.form-section-title {
+    font-size: var(--md-sys-typescale-title-medium-font-size);
+    font-weight: var(--md-sys-typescale-title-medium-font-weight);
+    line-height: var(--md-sys-typescale-title-medium-line-height);
+    color: var(--md-sys-color-on-surface);
+    margin-bottom: var(--md-sys-spacing-medium);
+    padding-bottom: var(--md-sys-spacing-small);
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+/* 
+ * 進階選項摺疊區域
+ * --------------------------------------------------
+ */
+.form-advanced-options {
+    margin-top: var(--md-sys-spacing-medium);
+    opacity: 0.8;
+    transition: opacity var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-emphasized);
+}
+
+.form-advanced-options:hover {
+    opacity: 1;
+}
+
+.form-advanced-toggle {
+    background: none;
+    border: none;
+    color: var(--md-sys-color-primary);
+    font-size: var(--md-sys-typescale-label-large-font-size);
+    font-weight: var(--md-sys-typescale-label-large-font-weight);
+    cursor: pointer;
+    padding: var(--md-sys-spacing-small) 0;
+    margin-bottom: var(--md-sys-spacing-medium);
+    display: flex;
+    align-items: center;
+    gap: var(--md-sys-spacing-small);
+    
+    transition: color var(--md-sys-motion-duration-medium1) var(--md-sys-motion-easing-emphasized);
+}
+
+.form-advanced-toggle:hover {
+    color: var(--md-sys-color-primary-container);
+}
+
+.form-advanced-toggle .material-icons {
+    transition: transform var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-spring-gentle);
+}
+
+.form-advanced-toggle.expanded .material-icons {
+    transform: rotate(180deg);
+}
+
+/* 
+ * 動畫效果
+ * --------------------------------------------------
+ */
+@keyframes fieldFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(var(--md-sys-spacing-medium));
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.text-field {
+    animation: fieldFadeIn var(--md-sys-motion-duration-medium3) var(--md-sys-motion-easing-emphasized);
+}
+
+/* 
+ * 輔助文字樣式
+ * --------------------------------------------------
+ */
+.text-field .helper-text {
+    font-size: var(--md-sys-typescale-body-small-font-size);
+    line-height: var(--md-sys-typescale-body-small-line-height);
+    color: var(--md-sys-color-on-surface-variant);
+    margin-top: var(--md-sys-spacing-extra-small);
+    padding-left: var(--md-sys-spacing-medium);
+    
+    transition: color var(--md-sys-motion-duration-medium1) var(--md-sys-motion-easing-emphasized);
+}
+
+.text-field.error .helper-text {
+    color: var(--md-sys-color-error);
+}
+
+.text-field.success .helper-text {
+    color: var(--md-sys-color-success);
+} 

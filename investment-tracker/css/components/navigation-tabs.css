@@ -1,0 +1,62 @@
+/*
+ * Navigation Tabs 元件樣式
+ * --------------------------------------------------
+ * 用於在不同投資類別之間切換的導覽頁籤。
+ */
+
+/* 頁籤容器 */
+.navigation-tabs {
+    background-color: var(--md-sys-color-surface-container-low); /* 背景顏色 */
+    border-radius: 12px; /* 圓角 */
+    padding: 4px; /* 內距 */
+    margin-bottom: 24px; /* 底部外距 */
+    display: grid; /* 使用 Grid 佈局 */
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* 自動適應的欄位 */
+    gap: 4px; /* 間距 */
+    box-shadow: var(--md-sys-elevation-level1); /* 陰影效果 */
+}
+
+/* 單一頁籤按鈕 */
+.navigation-tab {
+    background: none; /* 無背景 */
+    border: none; /* 無邊框 */
+    border-radius: 8px; /* 圓角 */
+    padding: 12px 16px; /* 內距 */
+    cursor: pointer; /* 滑鼠指標為手形 */
+    transition: all 0.2s ease; /* 過渡效果 */
+    font-family: 'Roboto', sans-serif; /* 字體 */
+    font-size: 14px; /* 字體大小 */
+    font-weight: 500; /* 字體粗細 */
+    color: var(--md-sys-color-on-surface-variant); /* 文字顏色 */
+    text-align: center; /* 文字置中 */
+    position: relative; /* 相對定位，用於動畫效果 */
+    overflow: hidden; /* 隱藏超出部分 */
+    display: flex; /* 使用 Flexbox 佈局 */
+    align-items: center; /* 垂直置中對齊 */
+    justify-content: center; /* 水平置中對齊 */
+    gap: 8px; /* icon 和文字之間的間距 */
+}
+
+/* 頁籤中的 Material Icons */
+.navigation-tab .material-icons {
+    font-size: 18px; /* icon 大小 */
+    line-height: 1; /* 行高設為 1，避免額外空間 */
+}
+
+/* 頁籤中的文字 */
+.navigation-tab span:not(.material-icons) {
+    line-height: 1; /* 文字行高設為 1 */
+    white-space: nowrap; /* 防止文字換行 */
+}
+
+/* 當前活動的頁籤 */
+.navigation-tab.active {
+    background-color: var(--md-sys-color-secondary-container); /* 活動狀態的背景顏色 */
+    color: var(--md-sys-color-on-secondary-container); /* 活動狀態的文字顏色 */
+}
+
+/* 滑鼠懸停效果 */
+.navigation-tab:hover:not(.active) {
+    background-color: var(--md-sys-color-surface-container-high); /* 懸停時的背景顏色 */
+    color: var(--md-sys-color-on-surface); /* 懸停時的文字顏色 */
+} 

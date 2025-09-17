@@ -1,0 +1,21 @@
+/*
+ * App Bar 元件樣式
+ * --------------------------------------------------
+ * 頂部應用程式標題列的樣式。
+ */
+
+.app-bar {
+    background-color: var(--md-sys-color-surface-container); /* 背景顏色 */
+    border-radius: 28px; /* 圓角 */
+    padding: 16px 24px; /* 內距 */
+    margin-bottom: 24px; /* 底部外距 */
+    box-shadow: var(--md-sys-elevation-level2); /* 陰影效果 */
+}
+
+.app-bar h1 {
+    font-size: 32px; /* 標題字體大小 */
+    font-weight: 400; /* 字體粗細 */
+    color: var(--md-sys-color-on-surface); /* 文字顏色 */
+    text-align: center; /* 文字置中 */
+    margin: 0; /* 無外距 */
+} 

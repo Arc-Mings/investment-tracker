@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>個人投資紀錄表</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Design System -->
+    <link rel="stylesheet" href="css/design-system/tokens.css">
+    <!-- Components -->
+    <link rel="stylesheet" href="css/components/main.css">
+    <link rel="stylesheet" href="css/components/app-bar.css">
+    <link rel="stylesheet" href="css/components/navigation-tabs.css">
+    <link rel="stylesheet" href="css/components/card.css">
+    <link rel="stylesheet" href="css/components/forms.css">
+    <link rel="stylesheet" href="css/components/buttons.css">
+    <link rel="stylesheet" href="css/components/data-table.css">
+    <link rel="stylesheet" href="css/components/summary.css">
+    <link rel="stylesheet" href="css/components/portfolio-cards.css">
+    <!-- Responsive -->
+    <link rel="stylesheet" href="css/responsive/responsive.css">
+    <!-- Database Services (載入順序重要) -->
+    <script src="backend/database/databaseService.js"></script>
+    <script src="backend/database/databaseAdapter.js"></script>
+    <script src="backend/database/databaseIntegration.js"></script>
+    <!-- Main JavaScript -->
+    <script type="module" src="js/main.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="app-bar">
+            <h1>個人投資紀錄表</h1>
+        </header>
+        
+        <nav class="navigation-tabs">
+            <button class="navigation-tab active" data-tab="stocks">
+                <span class="material-icons">trending_up</span>
+                <span>股票投資</span>
+            </button>
+            <button class="navigation-tab" data-tab="funds">
+                <span class="material-icons">account_balance</span>
+                <span>基金定投</span>
+            </button>
+            <button class="navigation-tab" data-tab="crypto">
+                <span class="material-icons">currency_bitcoin</span>
+                <span>加密貨幣</span>
+            </button>
+            <button class="navigation-tab" data-tab="property">
+                <span class="material-icons">home</span>
+                <span>預售屋房貸</span>
+            </button>
+            <button class="navigation-tab" data-tab="portfolio">
+                <span class="material-icons">pie_chart</span>
+                <span>持倉分析</span>
+            </button>
+            <button class="navigation-tab" data-tab="summary">
+                <span class="material-icons">analytics</span>
+                <span>總覽分析</span>
+            </button>
+        </nav>
+
+        <main>
+            <!-- 股票投資 -->
+            <div id="stocks" class="tab-content active">
+                <!-- 股票買進區塊 -->
+                <section class="card growth-theme">
+                    <div class="card-status-indicator"></div>
+                    <h3 class="card-header">
+                        <span class="emoji">🌱</span>
+                        股票買進
+                    </h3>
+                    <p class="card-subtitle">自律即是自由</p>
+                    
+                    <div class="form-section">
+                        <h4 class="form-section-title">基本資訊</h4>
+                        <div class="form-row core-fields">
+                            <div class="text-field">
+                                <select id="buyStockMarket" onchange="updateBuyStockForm()">
+                                    <option value="台股">台股 (TWD)</option>
+                                    <option value="美股">美股 (USD)</option>
+                                </select>
+                                <label>市場</label>
+                            </div>
+                            <div class="text-field">
+                                <select id="buyStockAssetType">
+                                    <option value="股票">股票</option>
+                                    <option value="ETF">ETF</option>
+                                </select>
+                                <label>資產類型</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="text" id="buyStockCode" placeholder=" " required>
+                                <label>股票代號</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="text" id="buyStockName" placeholder=" " required>
+                                <label>公司名稱</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4 class="form-section-title">交易詳情</h4>
+                        <div class="form-row">
+                            <div class="text-field">
+                                <input type="date" id="buyStockDate" required>
+                                <label>交易日期</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="number" id="buyStockShares" placeholder=" " min="0" step="1" required>
+                                <label>股數</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="number" step="0.01" id="buyStockPrice" placeholder=" " min="0" required>
+                                <label id="buyStockPriceLabel">價格 (TWD)</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="number" step="1" id="buyStockFee" placeholder=" " min="0" required>
+                                <label id="buyStockFeeLabel">手續費 (台股整數)</label>
+                                <div class="helper-text">請輸入您券商的實際手續費</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="button-group end">
+                        <button class="filled-button growth-action" onclick="addStockBuyRecord()">
+                            <span class="material-icons">add_circle</span>
+                            記錄這筆成長投資
+                        </button>
+                    </div>
+                </section>
+
+                <!-- 股票賣出區塊 -->
+                <section class="card action-theme">
+                    <div class="card-status-indicator"></div>
+                    <h3 class="card-header">
+                        <span class="emoji">⚡</span>
+                        股票賣出
+                    </h3>
+                    <p class="card-subtitle">落袋為安才是真獲利</p>
+                    
+                    <div class="form-section">
+                        <h4 class="form-section-title">基本資訊</h4>
+                        <div class="form-row core-fields">
+                            <div class="text-field">
+                                <select id="sellStockMarket" onchange="updateSellStockForm()">
+                                    <option value="台股">台股 (TWD)</option>
+                                    <option value="美股">美股 (USD)</option>
+                                </select>
+                                <label>市場</label>
+                            </div>
+                            <div class="text-field">
+                                <select id="sellStockAssetType">
+                                    <option value="股票">股票</option>
+                                    <option value="ETF">ETF</option>
+                                </select>
+                                <label>資產類型</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="text" id="sellStockCode" placeholder=" " required>
+                                <label>股票代號</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="text" id="sellStockName" placeholder=" " required>
+                                <label>公司名稱</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4 class="form-section-title">交易詳情</h4>
+                        <div class="form-row">
+                            <div class="text-field">
+                                <input type="date" id="sellStockDate" required>
+                                <label>交易日期</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="number" id="sellStockShares" placeholder=" " min="0" step="1" required>
+                                <label>股數</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="number" step="0.01" id="sellStockPrice" placeholder=" " min="0" required>
+                                <label id="sellStockPriceLabel">價格 (TWD)</label>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="text-field">
+                                <input type="number" step="1" id="sellStockFee" placeholder=" " min="0" required>
+                                <label id="sellStockFeeLabel">手續費 (台股整數)</label>
+                                <div class="helper-text">請輸入您券商的實際手續費</div>
+                            </div>
+                            <div class="text-field" id="sellStockTaxField" style="display: block;">
+                                <input type="number" step="1" id="sellStockTax" placeholder=" " min="0" required>
+                                <label>證交稅 (僅台股)</label>
+                                <div class="helper-text">台股賣出需要證交稅</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="button-group end">
+                        <button class="filled-button action-theme" onclick="addStockSellRecord()">
+                            <span class="material-icons">trending_down</span>
+                            記錄這筆獲利實現
+                        </button>
+                    </div>
+                </section>
+                
+                <section class="card neutral-theme">
+                    <h3 class="card-header">
+                        <span class="emoji">💼</span>
+                        目前持倉
+                    </h3>
+                    <p class="card-subtitle">您的投資組合概覽</p>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>市場</th>
+                                <th>類型</th>
+                                <th>股票代號</th>
+                                <th>公司名稱</th>
+                                <th>持股數量</th>
+                                <th>平均成本</th>
+                                <th>持倉價值</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stockHoldingsTableBody"></tbody>
+                    </table>
+                </section>
+                
+                <section class="card neutral-theme">
+                    <h3 class="card-header">
+                        <span class="emoji">📊</span>
+                        股票投資紀錄
+                    </h3>
+                    <p class="card-subtitle">您的投資歷程軌跡</p>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>日期</th>
+                                <th>市場</th>
+                                <th>類型</th>
+                                <th>股票代號</th>
+                                <th>公司名稱</th>
+                                <th>交易</th>
+                                <th>股數</th>
+                                <th>價格</th>
+                                <th>手續費</th>
+                                <th>證交稅</th>
+                                <th>總金額</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stockTableBody"></tbody>
+                    </table>
+                </section>
+            </div>
+
+            <!-- 基金定投 -->
+            <div id="funds" class="tab-content">
+                <section class="card growth-theme">
+                    <div class="card-status-indicator"></div>
+                    <h3 class="card-header">
+                        <span class="emoji">🏦</span>
+                        基金交易
+                    </h3>
+                    <p class="card-subtitle">第八大奇蹟，時間複利的力量</p>
+                    
+                    <div class="form-section">
+                        <h4 class="form-section-title">交易基本資訊</h4>
+                        <div class="form-row core-fields">
+                            <div class="text-field">
+                                <select id="fundType">
+                                    <option value="買入">買入</option>
+                                    <option value="贖回">贖回</option>
+                                </select>
+                                <label>交易類型</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="text" id="fundName" placeholder=" " required>
+                                <label>基金名稱</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="date" id="fundDate" required>
+                                <label>交易日期</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4 class="form-section-title">交易詳情</h4>
+                        <div class="form-row">
+                            <div class="text-field">
+                                <input type="number" id="fundAmount" placeholder=" " min="0" required>
+                                <label>交易金額</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="number" step="0.0001" id="fundNav" placeholder=" " min="0" required>
+                                <label>淨值</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="number" step="0.0001" id="fundUnits" placeholder=" " min="0">
+                                <label>單位數</label>
+                                <div class="helper-text">系統會自動計算：金額÷淨值</div>
+                            </div>
+                            <div class="text-field">
+                                <input type="number" step="0.01" id="fundFee" placeholder=" " min="0" required>
+                                <label>手續費</label>
+                                <div class="helper-text">請輸入實際手續費，定期定額通常為0</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="button-group end">
+                        <button class="filled-button growth-action" onclick="addFundRecord()">
+                            <span class="material-icons">savings</span>
+                            記錄這筆基金交易
+                        </button>
+                    </div>
+                </section>
+                
+                <section class="card neutral-theme">
+                    <h3 class="card-header">
+                        <span class="emoji">💰</span>
+                        基金持倉
+                    </h3>
+                    <p class="card-subtitle">您的基金投資組合</p>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>基金名稱</th>
+                                <th>持有單位數</th>
+                                <th>平均淨值</th>
+                                <th>持倉價值</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fundHoldingsTableBody"></tbody>
+                    </table>
+                </section>
+                
+                <section class="card neutral-theme">
+                    <h3 class="card-header">
+                        <span class="emoji">📋</span>
+                        基金交易紀錄
+                    </h3>
+                    <p class="card-subtitle">您的基金投資歷程</p>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>日期</th>
+                                <th>交易類型</th>
+                                <th>基金名稱</th>
+                                <th>交易金額</th>
+                                <th>淨值</th>
+                                <th>單位數</th>
+                                <th>手續費</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fundTableBody"></tbody>
+                    </table>
+                </section>
+            </div>
+
+            <!-- 加密貨幣 -->
+            <div id="crypto" class="tab-content">
+                <section class="card action-theme">
+                    <div class="card-status-indicator"></div>
+                    <h3 class="card-header">
+                        <span class="emoji">₿</span>
+                        加密貨幣交易
+                    </h3>
+                    <p class="card-subtitle">通往羅馬的門票</p>
+                    
+                    <div class="form-section">
+                        <h4 class="form-section-title">交易基本資訊</h4>
+                        <div class="form-row core-fields">
+                            <div class="text-field">
+                                <input type="text" id="cryptoSymbol" placeholder=" " list="cryptoSymbolList" required>
+                                <datalist id="cryptoSymbolList">
+                                    <option value="BTC">BTC (Bitcoin)</option>
+                                    <option value="ETH">ETH (Ethereum)</option>
+                                    <option value="BNB">BNB (Binance Coin)</option>
+                                    <option value="ADA">ADA (Cardano)</option>
+                                    <option value="SOL">SOL (Solana)</option>
+                                    <option value="DOT">DOT (Polkadot)</option>
+                                    <option value="MATIC">MATIC (Polygon)</option>
+                                    <option value="AVAX">AVAX (Avalanche)</option>
+                                    <option value="UNI">UNI (Uniswap)</option>
+                                    <option value="LINK">LINK (Chainlink)</option>
+                                </datalist>
+                                <label>幣種</label>
+                                <div class="helper-text">可自行輸入或選擇常見幣種</div>
+                            </div>
+                            <div class="text-field">
+                                <select id="cryptoType">
+                                    <option value="買入">買入</option>
+                                    <option value="賣出">賣出</option>
+                                </select>
+                                <label>交易類型</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="date" id="cryptoDate" required>
+                                <label>交易日期</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4 class="form-section-title">交易詳情</h4>
+                        <div class="form-row">
+                            <div class="text-field">
+                                <input type="text" id="cryptoAmount" placeholder="例如: 0.00000001" pattern="[0-9]*\.?[0-9]*" inputmode="decimal" required>
+                                <label>數量</label>
+                                <div class="helper-text">支援小數點精確輸入</div>
+                            </div>
+                            <div class="text-field">
+                                <input type="number" step="0.01" min="0.01" id="cryptoPrice" placeholder=" " required>
+                                <label>價格 (TWD)</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="number" step="1" min="0" id="cryptoFee" placeholder=" " required>
+                                <label>手續費 (TWD)</label>
+                                <div class="helper-text">請輸入實際手續費，各交易所費率不同</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="button-group end">
+                        <button class="filled-button action-theme" onclick="addCryptoRecord()">
+                            <span class="material-icons">currency_bitcoin</span>
+                            記錄這筆加密交易
+                        </button>
+                    </div>
+                </section>
+                
+                <section class="card neutral-theme">
+                    <h3 class="card-header">
+                        <span class="emoji">💎</span>
+                        加密貨幣持倉
+                    </h3>
+                    <p class="card-subtitle">您的數位資產組合</p>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>幣種</th>
+                                <th>持有數量</th>
+                                <th>平均成本 (TWD)</th>
+                                <th>持倉價值 (TWD)</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cryptoHoldingsTableBody"></tbody>
+                    </table>
+                </section>
+                
+                <section class="card neutral-theme">
+                    <h3 class="card-header">
+                        <span class="emoji">🔗</span>
+                        加密貨幣交易紀錄
+                    </h3>
+                    <p class="card-subtitle">您的區塊鏈投資軌跡</p>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>日期</th>
+                                <th>幣種</th>
+                                <th>類型</th>
+                                <th>數量</th>
+                                <th>價格 (TWD)</th>
+                                <th>手續費 (TWD)</th>
+                                <th>總金額 (TWD)</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cryptoTableBody"></tbody>
+                    </table>
+                </section>
+            </div>
+
+            <!-- 預售屋房貸 -->
+            <div id="property" class="tab-content">
+                <section class="card growth-theme">
+                    <div class="card-status-indicator"></div>
+                    <h3 class="card-header">
+                        <span class="emoji">🏠</span>
+                        預售屋房貸資訊
+                    </h3>
+                    <p class="card-subtitle">為未來的家園奠定穩固基礎</p>
+                    
+                    <div class="form-section">
+                        <h4 class="form-section-title">物件基本資料</h4>
+                        <div class="form-row core-fields">
+                            <div class="text-field">
+                                <input type="text" id="propertyName" placeholder=" " required>
+                                <label>物件名稱</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="number" id="propertyTotal" placeholder=" " min="0" required>
+                                <label>總價</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="number" id="propertyDown" placeholder=" " min="0" required>
+                                <label>頭期款</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4 class="form-section-title">貸款條件</h4>
+                        <div class="form-row">
+                            <div class="text-field">
+                                <input type="number" id="propertyLoan" placeholder=" " min="0" required>
+                                <label>貸款金額</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="number" step="0.01" id="propertyRate" placeholder=" " min="0" required>
+                                <label>利率 (%)</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="number" id="propertyYears" placeholder=" " min="0" required>
+                                <label>貸款年限</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="button-group end">
+                        <button class="filled-button growth-action" onclick="addPropertyRecord()">
+                            <span class="material-icons">home</span>
+                            記錄房產資訊
+                        </button>
+                    </div>
+                </section>
+
+                <section class="card action-theme">
+                    <div class="card-status-indicator"></div>
+                    <h3 class="card-header">
+                        <span class="emoji">💳</span>
+                        房貸繳款紀錄
+                    </h3>
+                    <p class="card-subtitle">每一次繳款，都是朝夢想家園邁進</p>
+                    
+                    <div class="form-section">
+                        <h4 class="form-section-title">繳款資訊</h4>
+                        <div class="form-row">
+                            <div class="text-field">
+                                <input type="date" id="paymentDate" required>
+                                <label>繳款日期</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="number" id="paymentAmount" placeholder=" " min="0" required>
+                                <label>繳款金額</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="number" id="principalAmount" placeholder=" " min="0" required>
+                                <label>本金</label>
+                            </div>
+                            <div class="text-field">
+                                <input type="number" id="interestAmount" placeholder=" " min="0" required>
+                                <label>利息</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="button-group end">
+                        <button class="filled-button action-theme" onclick="addPaymentRecord()">
+                            <span class="material-icons">payment</span>
+                            記錄繳款紀錄
+                        </button>
+                    </div>
+                </section>
+                
+                <section class="card neutral-theme">
+                    <h3 class="card-header">
+                        <span class="emoji">🏛️</span>
+                        房貸基本資訊
+                    </h3>
+                    <p class="card-subtitle">您的房產投資概覽</p>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>物件名稱</th>
+                                <th>總價</th>
+                                <th>頭期款</th>
+                                <th>貸款金額</th>
+                                <th>利率</th>
+                                <th>年限</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="propertyTableBody"></tbody>
+                    </table>
+                </section>
+
+                <section class="card neutral-theme">
+                    <h3 class="card-header">
+                        <span class="emoji">📅</span>
+                        繳款紀錄
+                    </h3>
+                    <p class="card-subtitle">您的還款歷程追蹤</p>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>繳款日期</th>
+                                <th>繳款金額</th>
+                                <th>本金</th>
+                                <th>利息</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentTableBody"></tbody>
+                    </table>
+                </section>
+            </div>
+
+            <!-- 持倉分析 -->
+            <div id="portfolio" class="tab-content">
+                <section class="portfolio-grid">
+                    <div class="portfolio-card">
+                        <div class="portfolio-card-header">
+                            <h3 class="portfolio-card-title">
+                                <div class="portfolio-card-icon stock">📈</div>
+                                股票持倉
+                            </h3>
+                        </div>
+                        <div class="portfolio-metrics">
+                            <div class="portfolio-metric">
+                                <div class="portfolio-metric-label">總持倉價值</div>
+                                <div class="portfolio-metric-value" id="stockPortfolioValue">$0</div>
+                            </div>
+                            <div class="portfolio-metric">
+                                <div class="portfolio-metric-label">未實現損益</div>
+                                <div class="portfolio-metric-value" id="stockUnrealizedPL">$0</div>
+                            </div>
+                        </div>
+                        <div class="portfolio-progress">
+                            <div class="portfolio-progress-label">
+                                <span>投資組合佔比</span>
+                                <span id="stockPortfolioPercentage">0%</span>
+                            </div>
+                            <div class="portfolio-progress-bar">
+                                <div class="portfolio-progress-fill" id="stockProgressFill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="portfolio-actions">
+                            <button class="portfolio-action-btn" onclick="showTab('stocks')">
+                                <span class="material-icons">visibility</span>
+                                查看詳情
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="portfolio-card">
+                        <div class="portfolio-card-header">
+                            <h3 class="portfolio-card-title">
+                                <div class="portfolio-card-icon fund">🏦</div>
+                                基金持倉
+                            </h3>
+                        </div>
+                        <div class="portfolio-metrics">
+                            <div class="portfolio-metric">
+                                <div class="portfolio-metric-label">總持倉價值</div>
+                                <div class="portfolio-metric-value" id="fundPortfolioValue">$0</div>
+                            </div>
+                            <div class="portfolio-metric">
+                                <div class="portfolio-metric-label">未實現損益</div>
+                                <div class="portfolio-metric-value" id="fundUnrealizedPL">$0</div>
+                            </div>
+                        </div>
+                        <div class="portfolio-progress">
+                            <div class="portfolio-progress-label">
+                                <span>投資組合佔比</span>
+                                <span id="fundPortfolioPercentage">0%</span>
+                            </div>
+                            <div class="portfolio-progress-bar">
+                                <div class="portfolio-progress-fill" id="fundProgressFill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="portfolio-actions">
+                            <button class="portfolio-action-btn" onclick="showTab('funds')">
+                                <span class="material-icons">visibility</span>
+                                查看詳情
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="portfolio-card">
+                        <div class="portfolio-card-header">
+                            <h3 class="portfolio-card-title">
+                                <div class="portfolio-card-icon crypto">₿</div>
+                                加密貨幣持倉
+                            </h3>
+                        </div>
+                        <div class="portfolio-metrics">
+                            <div class="portfolio-metric">
+                                <div class="portfolio-metric-label">總持倉價值</div>
+                                <div class="portfolio-metric-value" id="cryptoPortfolioValue">$0</div>
+                            </div>
+                            <div class="portfolio-metric">
+                                <div class="portfolio-metric-label">未實現損益</div>
+                                <div class="portfolio-metric-value" id="cryptoUnrealizedPL">$0</div>
+                            </div>
+                        </div>
+                        <div class="portfolio-progress">
+                            <div class="portfolio-progress-label">
+                                <span>投資組合佔比</span>
+                                <span id="cryptoPortfolioPercentage">0%</span>
+                            </div>
+                            <div class="portfolio-progress-bar">
+                                <div class="portfolio-progress-fill" id="cryptoProgressFill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="portfolio-actions">
+                            <button class="portfolio-action-btn" onclick="showTab('crypto')">
+                                <span class="material-icons">visibility</span>
+                                查看詳情
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="holdings-table-container">
+                    <div class="holdings-table-header">
+                        <h3 class="holdings-table-title">
+                            <span class="material-icons">account_balance_wallet</span>
+                            整體持倉概覽
+                        </h3>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>資產類別</th>
+                                <th>標的名稱</th>
+                                <th>持有數量</th>
+                                <th>平均成本</th>
+                                <th>目前價值</th>
+                                <th>未實現損益</th>
+                                <th>報酬率</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="portfolioOverviewTableBody"></tbody>
+                    </table>
+                </section>
+            </div>
+
+            <!-- 總覽分析 -->
+            <div id="summary" class="tab-content">
+                <section class="card neutral-theme">
+                    <h3 class="card-header">
+                        <span class="emoji">⚙️</span>
+                        資料管理
+                    </h3>
+                    <p class="card-subtitle">安全備份您的投資數據</p>
+                    
+                    <div class="button-group center">
+                        <button class="outlined-button" onclick="exportData()">
+                            <span class="material-icons">download</span>
+                            匯出備份
+                        </button>
+                        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+                        <button class="outlined-button" onclick="triggerImport()">
+                            <span class="material-icons">upload</span>
+                            匯入備份
+                        </button>
+                        <button class="error-button" onclick="clearAllData()">
+                            <span class="material-icons">delete_forever</span>
+                            清空資料
+                        </button>
+                    </div>
+                    
+                    <div class="card-divider"></div>
+                    
+                    <div style="text-align: center; font-size: var(--md-sys-typescale-body-medium-font-size); color: var(--md-sys-color-on-surface-variant);">
+                        <span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">info</span>
+                        最後保存時間：<span id="lastSaveTime">從未保存</span> | 
+                        自動保存：<span style="color: var(--md-sys-color-success); font-weight: 500;">已啟用</span>
+                    </div>
+                </section>
+                
+                <section class="card growth-theme">
+                    <h3 class="card-header">
+                        <span class="emoji">💰</span>
+                        投資總覽
+                    </h3>
+                    <p class="card-subtitle">您的資產累積成果</p>
+                    <div class="summary-grid">
+                        <div class="summary-card">
+                            <h4>台股總投入</h4>
+                            <div class="amount negative" id="twStockTotalInvest">TWD $0</div>
+                        </div>
+                        <div class="summary-card">
+                            <h4>美股總投入</h4>
+                            <div class="amount negative" id="usStockTotalInvest">USD $0</div>
+                        </div>
+                        <div class="summary-card">
+                            <h4>基金總投入</h4>
+                            <div class="amount negative" id="fundTotalInvest">$0</div>
+                        </div>
+                        <div class="summary-card">
+                            <h4>加密貨幣總投入</h4>
+                            <div class="amount negative" id="cryptoTotalInvest">$0</div>
+                        </div>
+                        <div class="summary-card">
+                            <h4>房貸已繳本金</h4>
+                            <div class="amount negative" id="propertyPaidPrincipal">$0</div>
+                        </div>
+                    </div>
+                </section>
+                
+                <section class="card action-theme">
+                    <h3 class="card-header">
+                        <span class="emoji">📈</span>
+                        資產配置分析
+                    </h3>
+                    <p class="card-subtitle">多元化投資組合分佈</p>
+                    <div class="summary-grid">
+                        <div class="summary-card">
+                            <h4>台股 - 股票</h4>
+                            <div class="amount" style="color: var(--md-sys-color-warning);" id="twStockCount">0 檔</div>
+                        </div>
+                        <div class="summary-card">
+                            <h4>台股 - ETF</h4>
+                            <div class="amount" style="color: var(--md-sys-color-tertiary);" id="twEtfCount">0 檔</div>
+                        </div>
+                        <div class="summary-card">
+                            <h4>美股 - 股票</h4>
+                            <div class="amount" style="color: var(--md-sys-color-warning);" id="usStockCount">0 檔</div>
+                        </div>
+                        <div class="summary-card">
+                            <h4>美股 - ETF</h4>
+                            <div class="amount" style="color: var(--md-sys-color-tertiary);" id="usEtfCount">0 檔</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="js/core/main.js"></script>
+    
+    <!-- M3 Expressive 進階功能 JavaScript -->
+    <script>
+        // 全域頁籤切換函數
+        window.showTab = function(tabName) {
+            if (!tabName) return;
+
+            console.log(`Switching to tab: ${tabName}`);
+            
+            // 隱藏所有頁籤內容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // 移除所有頁籤的 'active' class
+            document.querySelectorAll('.navigation-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // 顯示目標頁籤的內容
+            const activeContent = document.getElementById(tabName);
+            if (activeContent) {
+                activeContent.classList.add('active');
+            }
+
+            // 將目標頁籤設為 'active'
+            const activeTab = document.querySelector(`.navigation-tab[data-tab="${tabName}"]`);
+            if (activeTab) {
+                activeTab.classList.add('active');
+            }
+        };
+
+        // 初始化頁籤切換事件
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.navigation-tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const targetTab = this.getAttribute('data-tab');
+                    window.showTab(targetTab);
+                });
+            });
+            
+            // 預設顯示第一個頁籤
+            window.showTab('stocks');
+        });
+
+        // 進階選項切換功能
+        function toggleAdvancedOptions(type) {
+            const toggleButton = document.querySelector(`.form-advanced-toggle[onclick*="${type}"]`);
+            const optionsDiv = document.getElementById(`${type}AdvancedOptions`);
+            const icon = toggleButton.querySelector('.material-icons');
+            
+            if (optionsDiv.style.display === 'none' || optionsDiv.style.display === '') {
+                // 展開
+                optionsDiv.style.display = 'block';
+                toggleButton.classList.add('expanded');
+                toggleButton.innerHTML = '<span class="material-icons">expand_less</span>收起進階選項';
+                
+                // 添加展開動畫
+                optionsDiv.style.opacity = '0';
+                optionsDiv.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    optionsDiv.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    optionsDiv.style.opacity = '1';
+                    optionsDiv.style.transform = 'translateY(0)';
+                }, 10);
+            } else {
+                // 收起
+                optionsDiv.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                optionsDiv.style.opacity = '0';
+                optionsDiv.style.transform = 'translateY(-10px)';
+                
+                setTimeout(() => {
+                    optionsDiv.style.display = 'none';
+                    toggleButton.classList.remove('expanded');
+                    toggleButton.innerHTML = '<span class="material-icons">expand_more</span>進階選項';
+                }, 300);
+            }
+        }
+        
+        // 添加成功動畫效果
+        function triggerSuccessAnimation(element) {
+            if (element) {
+                element.classList.add('success-animation');
+                setTimeout(() => {
+                    element.classList.remove('success-animation');
+                }, 600);
+            }
+        }
+        
+        // 添加按鈕成功回饋
+        function addButtonSuccessAnimation(buttonElement) {
+            if (buttonElement) {
+                buttonElement.classList.add('button-success-animation');
+                const originalText = buttonElement.innerHTML;
+                buttonElement.innerHTML = '<span class="material-icons">check_circle</span>已記錄！';
+                
+                setTimeout(() => {
+                    buttonElement.classList.remove('button-success-animation');
+                    buttonElement.innerHTML = originalText;
+                }, 1500);
+            }
+        }
+        
+        // 智慧表單驗證回饋
+        function addFormValidationFeedback() {
+            const textFields = document.querySelectorAll('.text-field');
+            
+            textFields.forEach(field => {
+                const input = field.querySelector('input, select');
+                
+                if (input) {
+                    input.addEventListener('blur', function() {
+                        if (this.checkValidity() && this.value.trim() !== '') {
+                            field.classList.remove('error');
+                            field.classList.add('success');
+                        } else if (!this.checkValidity()) {
+                            field.classList.remove('success');
+                            field.classList.add('error');
+                        } else {
+                            field.classList.remove('success', 'error');
+                        }
+                    });
+                    
+                    input.addEventListener('input', function() {
+                        if (field.classList.contains('error') && this.checkValidity()) {
+                            field.classList.remove('error');
+                        }
+                    });
+                }
+            });
+        }
+        
+        // 初始化M3 Expressive功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 為所有卡片添加懸停效果
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+            
+            // 初始化表單驗證回饋
+            addFormValidationFeedback();
+            
+            // 添加浮現動畫效果
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            });
+            
+            // 觀察所有卡片
+            cards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(card);
+            });
+        });
+        
+        // 覆寫原有的addStockBuyRecord函數，添加動畫效果
+        const originalAddStockBuyRecord = window.addStockBuyRecord;
+        if (originalAddStockBuyRecord) {
+            window.addStockBuyRecord = function() {
+                const button = document.querySelector('.growth-action');
+                const card = button.closest('.card');
+                
+                // 調用原函數
+                originalAddStockBuyRecord();
+                
+                // 添加成功動畫
+                addButtonSuccessAnimation(button);
+                triggerSuccessAnimation(card);
+            };
+        }
+        
+        // 覆寫原有的addStockSellRecord函數，添加動畫效果
+        const originalAddStockSellRecord = window.addStockSellRecord;
+        if (originalAddStockSellRecord) {
+            window.addStockSellRecord = function() {
+                const button = document.querySelector('.action-theme .filled-button');
+                const card = button.closest('.card');
+                
+                // 調用原函數
+                originalAddStockSellRecord();
+                
+                // 添加成功動畫
+                addButtonSuccessAnimation(button);
+                triggerSuccessAnimation(card);
+            };
+        }
+        
+        // 覆寫基金相關函數
+        const originalAddFundRecord = window.addFundRecord;
+        if (originalAddFundRecord) {
+            window.addFundRecord = function() {
+                const button = document.querySelector('#funds .growth-action');
+                const card = button.closest('.card');
+                
+                originalAddFundRecord();
+                addButtonSuccessAnimation(button);
+                triggerSuccessAnimation(card);
+            };
+        }
+        
+        // 覆寫加密貨幣相關函數
+        const originalAddCryptoRecord = window.addCryptoRecord;
+        if (originalAddCryptoRecord) {
+            window.addCryptoRecord = function() {
+                const button = document.querySelector('#crypto .action-theme .filled-button');
+                const card = button.closest('.card');
+                
+                originalAddCryptoRecord();
+                addButtonSuccessAnimation(button);
+                triggerSuccessAnimation(card);
+            };
+        }
+        
+        // 覆寫房產相關函數
+        const originalAddPropertyRecord = window.addPropertyRecord;
+        if (originalAddPropertyRecord) {
+            window.addPropertyRecord = function() {
+                const button = document.querySelector('#property .growth-action');
+                const card = button.closest('.card');
+                
+                originalAddPropertyRecord();
+                addButtonSuccessAnimation(button);
+                triggerSuccessAnimation(card);
+            };
+        }
+        
+        const originalAddPaymentRecord = window.addPaymentRecord;
+        if (originalAddPaymentRecord) {
+            window.addPaymentRecord = function() {
+                const button = document.querySelector('#property .action-theme .filled-button');
+                const card = button.closest('.card');
+                
+                originalAddPaymentRecord();
+                addButtonSuccessAnimation(button);
+                triggerSuccessAnimation(card);
+            };
+        }
+    </script>
+</body>
+</html> 

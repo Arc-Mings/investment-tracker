@@ -1,0 +1,239 @@
+/*
+ * Design Tokens
+ * --------------------------------------------------
+ * 這個檔案定義了整個應用程式的設計基礎，
+ * 包含顏色、陰影層級等，遵循 Material Design 3 的設計規範。
+ * 透過 CSS 變數（Custom Properties）來實現，方便統一管理與修改。
+ */
+
+:root {
+    /* 
+     * Material Design 3 色彩變數
+     * 這些是應用程式中使用的主要顏色。
+     */
+
+    /* 主要顏色：用於關鍵元件，如按鈕、活動狀態等 */
+    --md-sys-color-primary: #6750A4;
+    --md-sys-color-on-primary: #FFFFFF; /* 主要顏色上的文字/圖示顏色 */
+    --md-sys-color-primary-container: #EADDFF; /* 主要顏色的容器背景 */
+    --md-sys-color-on-primary-container: #21005D; /* 主要顏色容器上的文字/圖示顏色 */
+    
+    /* 次要顏色：用於次要元件，補充主要顏色 */
+    --md-sys-color-secondary: #625B71;
+    --md-sys-color-on-secondary: #FFFFFF;
+    --md-sys-color-secondary-container: #E8DEF8;
+    --md-sys-color-on-secondary-container: #1D192B;
+    
+    /* 第三顏色：用於點綴或對比，例如標籤 */
+    --md-sys-color-tertiary: #7D5260;
+    --md-sys-color-on-tertiary: #FFFFFF;
+    --md-sys-color-tertiary-container: #FFD8E4;
+    --md-sys-color-on-tertiary-container: #31111D;
+    
+    /* 
+     * M3 Expressive - 情感色彩系統
+     * --------------------------------------------------
+     * 為投資應用添加情感支持的色彩體系
+     */
+    
+    /* 成長/希望色彩系統 - 用於買入相關的UI */
+    --md-sys-color-growth-primary: #2E7D32; /* 深綠 - 穩定成長 */
+    --md-sys-color-growth-primary-light: #4CAF50; /* 明綠 - 積極希望 */
+    --md-sys-color-growth-container: #E8F5E8; /* 淺綠背景 - 寧靜信心 */
+    --md-sys-color-growth-container-bright: #F1F8E9; /* 超淺綠 - 呼吸空間 */
+    --md-sys-color-on-growth: #FFFFFF;
+    --md-sys-color-on-growth-container: #1B5E20;
+    
+    /* 行動/決斷色彩系統 - 用於賣出相關的UI */
+    --md-sys-color-action-primary: #E65100; /* 深橘 - 果斷行動 */
+    --md-sys-color-action-primary-light: #FF9800; /* 明橘 - 積極決策 */
+    --md-sys-color-action-container: #FFF3E0; /* 淺橘背景 - 溫暖支持 */
+    --md-sys-color-action-container-bright: #FFF8F0; /* 超淺橘 - 舒緩緊張 */
+    --md-sys-color-on-action: #FFFFFF;
+    --md-sys-color-on-action-container: #BF360C;
+    
+    /* 成功狀態色彩 */
+    --md-sys-color-success: #1B5E20;
+    --md-sys-color-success-container: #C8E6C9;
+    --md-sys-color-on-success: #FFFFFF;
+    --md-sys-color-on-success-container: #2E7D32;
+    
+    /* 警示狀態色彩 - 溫和版本減少焦慮感 */
+    --md-sys-color-warning: #F57C00;
+    --md-sys-color-warning-container: #FFF3C4;
+    --md-sys-color-on-warning: #FFFFFF;
+    --md-sys-color-on-warning-container: #E65100;
+    
+    /* 錯誤顏色：用於指示錯誤狀態 */
+    --md-sys-color-error: #BA1A1A;
+    --md-sys-color-on-error: #FFFFFF;
+    --md-sys-color-error-container: #FFDAD6;
+    --md-sys-color-on-error-container: #410002;
+    
+    /* 表面顏色：用於元件背景，如卡片、選單等 */
+    --md-sys-color-surface: #FEF7FF; /* 基礎表面 */
+    --md-sys-color-surface-dim: #DED8E1; /* 較暗的表面 */
+    --md-sys-color-surface-bright: #FEF7FF; /* 較亮的表面 */
+    --md-sys-color-surface-container-lowest: #FFFFFF; /* 最低層次的容器背景 */
+    --md-sys-color-surface-container-low: #F7F2FA; /* 低層次的容器背景 */
+    --md-sys-color-surface-container: #F3EDF7; /* 中等層次的容器背景 */
+    --md-sys-color-surface-container-high: #ECE6F0; /* 高層次的容器背景 */
+    --md-sys-color-surface-container-highest: #E6E0E9; /* 最高層次的容器背景 */
+    
+    /* 表面上的顏色：用於表面背景上的文字和圖示 */
+    --md-sys-color-on-surface: #1C1B1F;
+    --md-sys-color-on-surface-variant: #49454F; /* 變體顏色，用於次要文字或邊框 */
+    
+    /* 輪廓線顏色：用於元件邊框 */
+    --md-sys-color-outline: #79747E;
+    --md-sys-color-outline-variant: #CAC4D0;
+    
+    /* 
+     * M3 Expressive - 字型系統
+     * --------------------------------------------------
+     * 增強的字型層次結構
+     */
+    
+    /* Display Scale - 最高層次標題 */
+    --md-sys-typescale-display-large-font-size: 57px;
+    --md-sys-typescale-display-large-line-height: 64px;
+    --md-sys-typescale-display-large-font-weight: 400;
+    
+    --md-sys-typescale-display-medium-font-size: 45px;
+    --md-sys-typescale-display-medium-line-height: 52px;
+    --md-sys-typescale-display-medium-font-weight: 400;
+    
+    --md-sys-typescale-display-small-font-size: 36px;
+    --md-sys-typescale-display-small-line-height: 44px;
+    --md-sys-typescale-display-small-font-weight: 400;
+    
+    /* Headline Scale - 主要標題 */
+    --md-sys-typescale-headline-large-font-size: 32px;
+    --md-sys-typescale-headline-large-line-height: 40px;
+    --md-sys-typescale-headline-large-font-weight: 400;
+    
+    --md-sys-typescale-headline-medium-font-size: 28px;
+    --md-sys-typescale-headline-medium-line-height: 36px;
+    --md-sys-typescale-headline-medium-font-weight: 400;
+    
+    --md-sys-typescale-headline-small-font-size: 24px;
+    --md-sys-typescale-headline-small-line-height: 32px;
+    --md-sys-typescale-headline-small-font-weight: 400;
+    
+    /* Title Scale - 次級標題 */
+    --md-sys-typescale-title-large-font-size: 22px;
+    --md-sys-typescale-title-large-line-height: 28px;
+    --md-sys-typescale-title-large-font-weight: 400;
+    
+    --md-sys-typescale-title-medium-font-size: 16px;
+    --md-sys-typescale-title-medium-line-height: 24px;
+    --md-sys-typescale-title-medium-font-weight: 500;
+    
+    --md-sys-typescale-title-small-font-size: 14px;
+    --md-sys-typescale-title-small-line-height: 20px;
+    --md-sys-typescale-title-small-font-weight: 500;
+    
+    /* Body Scale - 內文 */
+    --md-sys-typescale-body-large-font-size: 16px;
+    --md-sys-typescale-body-large-line-height: 24px;
+    --md-sys-typescale-body-large-font-weight: 400;
+    
+    --md-sys-typescale-body-medium-font-size: 14px;
+    --md-sys-typescale-body-medium-line-height: 20px;
+    --md-sys-typescale-body-medium-font-weight: 400;
+    
+    --md-sys-typescale-body-small-font-size: 12px;
+    --md-sys-typescale-body-small-line-height: 16px;
+    --md-sys-typescale-body-small-font-weight: 400;
+    
+    /* Label Scale - 標籤 */
+    --md-sys-typescale-label-large-font-size: 14px;
+    --md-sys-typescale-label-large-line-height: 20px;
+    --md-sys-typescale-label-large-font-weight: 500;
+    
+    --md-sys-typescale-label-medium-font-size: 12px;
+    --md-sys-typescale-label-medium-line-height: 16px;
+    --md-sys-typescale-label-medium-font-weight: 500;
+    
+    --md-sys-typescale-label-small-font-size: 11px;
+    --md-sys-typescale-label-small-line-height: 16px;
+    --md-sys-typescale-label-small-font-weight: 500;
+
+    /* 
+     * M3 Expressive - 形狀系統
+     * --------------------------------------------------
+     * 增強的形狀語言，提供不同的視覺權重
+     */
+    
+    /* 圓角設定 - 基礎 */
+    --md-sys-shape-corner-none: 0px;
+    --md-sys-shape-corner-extra-small: 4px;
+    --md-sys-shape-corner-small: 8px;
+    --md-sys-shape-corner-medium: 12px;
+    --md-sys-shape-corner-large: 16px;
+    --md-sys-shape-corner-extra-large: 28px;
+    
+    /* Expressive 形狀變化 */
+    --md-sys-shape-corner-expressive-small: 6px;
+    --md-sys-shape-corner-expressive-medium: 14px;
+    --md-sys-shape-corner-expressive-large: 20px;
+    
+    /* 
+     * M3 Expressive - 動畫系統
+     * --------------------------------------------------
+     * 自然、有彈性的動畫參數
+     */
+    
+    /* 標準動畫時長 */
+    --md-sys-motion-duration-short1: 50ms;
+    --md-sys-motion-duration-short2: 100ms;
+    --md-sys-motion-duration-short3: 150ms;
+    --md-sys-motion-duration-short4: 200ms;
+    --md-sys-motion-duration-medium1: 250ms;
+    --md-sys-motion-duration-medium2: 300ms;
+    --md-sys-motion-duration-medium3: 350ms;
+    --md-sys-motion-duration-medium4: 400ms;
+    --md-sys-motion-duration-long1: 450ms;
+    --md-sys-motion-duration-long2: 500ms;
+    --md-sys-motion-duration-long3: 550ms;
+    --md-sys-motion-duration-long4: 600ms;
+    
+    /* Expressive 彈性動畫緩動 */
+    --md-sys-motion-easing-linear: linear;
+    --md-sys-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+    --md-sys-motion-easing-standard-accelerate: cubic-bezier(0.3, 0, 1, 1);
+    --md-sys-motion-easing-standard-decelerate: cubic-bezier(0, 0, 0, 1);
+    --md-sys-motion-easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
+    --md-sys-motion-easing-emphasized-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+    --md-sys-motion-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+    
+    /* 彈跳效果 - M3 Expressive 特色 */
+    --md-sys-motion-easing-spring-gentle: cubic-bezier(0.16, 1, 0.3, 1);
+    --md-sys-motion-easing-spring-bouncy: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --md-sys-motion-easing-spring-snappy: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+    /* 
+     * 空間系統
+     * --------------------------------------------------
+     * 統一的間距規範
+     */
+    
+    --md-sys-spacing-none: 0px;
+    --md-sys-spacing-extra-small: 4px;
+    --md-sys-spacing-small: 8px;
+    --md-sys-spacing-medium: 16px;
+    --md-sys-spacing-large: 24px;
+    --md-sys-spacing-extra-large: 32px;
+    --md-sys-spacing-huge: 48px;
+    
+    /* 
+     * 陰影層級 (Elevation)
+     * 定義了不同層級的陰影效果，營造 UI 的深度感。
+     */
+    --md-sys-elevation-level0: none; /* 無陰影 */
+    --md-sys-elevation-level1: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15); /* 層級 1 */
+    --md-sys-elevation-level2: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15); /* 層級 2 */
+    --md-sys-elevation-level3: 0px 1px 3px 0px rgba(0, 0, 0, 0.3), 0px 4px 8px 3px rgba(0, 0, 0, 0.15); /* 層級 3 */
+    --md-sys-elevation-level4: 0px 2px 3px 0px rgba(0, 0, 0, 0.3), 0px 6px 10px 4px rgba(0, 0, 0, 0.15); /* 層級 4 */
+    --md-sys-elevation-level5: 0px 4px 4px 0px rgba(0, 0, 0, 0.3), 0px 8px 12px 6px rgba(0, 0, 0, 0.15); /* 層級 5 */
+} 
