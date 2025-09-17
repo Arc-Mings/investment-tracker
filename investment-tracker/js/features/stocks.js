@@ -105,6 +105,42 @@ const usStocks = {
 };
 
 /**
+ * 從股票代號欄位值中提取純代號
+ * @param {string} fieldValue - 欄位值，可能包含 "代號 名稱" 或 "代號 (查詢中...)"
+ * @returns {string} 純股票代號
+ */
+function extractStockCode(fieldValue) {
+    if (!fieldValue) return '';
+    
+    // 移除 "(查詢中...)" 或其他括號內容
+    let cleaned = fieldValue.replace(/\s*\([^)]*\)\s*/g, '');
+    
+    // 如果包含空格，取第一部分作為代號
+    const parts = cleaned.split(/\s+/);
+    return parts[0] || '';
+}
+
+/**
+ * 從股票代號欄位值中提取股票名稱
+ * @param {string} fieldValue - 欄位值，可能包含 "代號 名稱"
+ * @returns {string|null} 股票名稱或null
+ */
+function extractStockName(fieldValue) {
+    if (!fieldValue) return null;
+    
+    // 移除 "(查詢中...)" 或其他括號內容
+    let cleaned = fieldValue.replace(/\s*\([^)]*\)\s*/g, '');
+    
+    // 如果包含空格，取第二部分開始作為名稱
+    const parts = cleaned.split(/\s+/);
+    if (parts.length > 1) {
+        return parts.slice(1).join(' ');
+    }
+    
+    return null;
+}
+
+/**
  * 根據市場和代碼獲取股票名稱 (同步版本 - 僅靜態清單)
  * @param {string} market - 市場類型 ('台股' 或 '美股')
  * @param {string} code - 股票代碼
@@ -319,18 +355,17 @@ export function updateBuyStockForm() {
     
     // 清空表單欄位
     document.getElementById('buyStockCode').value = '';
-    document.getElementById('buyStockName').value = '';
     document.getElementById('buyStockShares').value = '';
     document.getElementById('buyStockPrice').value = '';
     document.getElementById('buyStockFee').value = '';
     
     if (market === '台股') {
-        if (priceLabel) priceLabel.textContent = '價格 (TWD)';
+        if (priceLabel) priceLabel.textContent = '買進價格 (TWD)';
         if (feeLabel) feeLabel.textContent = '手續費 (台股整數)';
         if (feeInput) feeInput.step = '1';
         if (sharesInput) sharesInput.step = '1'; // 台股股數為整數
     } else {
-        if (priceLabel) priceLabel.textContent = '價格 (USD)';
+        if (priceLabel) priceLabel.textContent = '買進價格 (USD)';
         if (feeLabel) feeLabel.textContent = '手續費 (USD)';
         if (feeInput) feeInput.step = '0.01';
         if (sharesInput) sharesInput.step = '0.00001'; // 美股支援小數點5位碎股
@@ -350,20 +385,19 @@ export function updateSellStockForm() {
     
     // 清空表單欄位
     document.getElementById('sellStockCode').value = '';
-    document.getElementById('sellStockName').value = '';
     document.getElementById('sellStockShares').value = '';
     document.getElementById('sellStockPrice').value = '';
     document.getElementById('sellStockFee').value = '';
     document.getElementById('sellStockTax').value = '';
     
     if (market === '台股') {
-        if (priceLabel) priceLabel.textContent = '價格 (TWD)';
+        if (priceLabel) priceLabel.textContent = '賣出價格 (TWD)';
         if (feeLabel) feeLabel.textContent = '手續費 (台股整數)';
         if (feeInput) feeInput.step = '1';
         if (sharesInput) sharesInput.step = '1'; // 台股股數為整數
         if (taxField) taxField.style.display = 'block';
     } else {
-        if (priceLabel) priceLabel.textContent = '價格 (USD)';
+        if (priceLabel) priceLabel.textContent = '賣出價格 (USD)';
         if (feeLabel) feeLabel.textContent = '手續費 (USD)';
         if (feeInput) feeInput.step = '0.01';
         if (sharesInput) sharesInput.step = '0.00001'; // 美股支援小數點5位碎股
@@ -378,8 +412,11 @@ export function addStockBuyRecord() {
     // 從 DOM 讀取表單數值
     const market = document.getElementById('buyStockMarket')?.value;
     const assetType = document.getElementById('buyStockAssetType')?.value;
-    const code = document.getElementById('buyStockCode')?.value.trim();
-    const name = document.getElementById('buyStockName')?.value.trim();
+    const codeFieldValue = document.getElementById('buyStockCode')?.value.trim();
+    
+    // 提取純股票代號（移除名稱和查詢狀態）
+    const code = extractStockCode(codeFieldValue);
+    const name = extractStockName(codeFieldValue) || document.getElementById('buyStockName')?.value.trim();
     const date = document.getElementById('buyStockDate')?.value;
     const sharesStr = document.getElementById('buyStockShares')?.value.trim();
     const priceStr = document.getElementById('buyStockPrice')?.value.trim();
@@ -468,10 +505,17 @@ export function addStockBuyRecord() {
 
     // 清空部分表單以便下次輸入
     document.getElementById('buyStockCode').value = '';
-    document.getElementById('buyStockName').value = '';
     document.getElementById('buyStockShares').value = '';
     document.getElementById('buyStockPrice').value = '';
     document.getElementById('buyStockFee').value = '';
+    
+    // 添加成功動畫
+    if (typeof window.addButtonSuccessAnimation === 'function') {
+        const button = document.querySelector('.growth-action');
+        const card = button?.closest('.card');
+        if (button) window.addButtonSuccessAnimation(button);
+        if (card) window.triggerSuccessAnimation(card);
+    }
     
     alert('買進紀錄新增成功！');
 }
@@ -483,8 +527,11 @@ export function addStockSellRecord() {
     // 從 DOM 讀取表單數值
     const market = document.getElementById('sellStockMarket')?.value;
     const assetType = document.getElementById('sellStockAssetType')?.value;
-    const code = document.getElementById('sellStockCode')?.value.trim();
-    const name = document.getElementById('sellStockName')?.value.trim();
+    const codeFieldValue = document.getElementById('sellStockCode')?.value.trim();
+    
+    // 提取純股票代號（移除名稱和查詢狀態）
+    const code = extractStockCode(codeFieldValue);
+    const name = extractStockName(codeFieldValue) || document.getElementById('sellStockName')?.value.trim();
     const date = document.getElementById('sellStockDate')?.value;
     const sharesStr = document.getElementById('sellStockShares')?.value.trim();
     const priceStr = document.getElementById('sellStockPrice')?.value.trim();
@@ -614,11 +661,18 @@ ${market === '台股' ? `• 證交稅：${tax.toLocaleString()} TWD` : ''}
 
     // 清空部分表單以便下次輸入
     document.getElementById('sellStockCode').value = '';
-    document.getElementById('sellStockName').value = '';
     document.getElementById('sellStockShares').value = '';
     document.getElementById('sellStockPrice').value = '';
     document.getElementById('sellStockFee').value = '';
     document.getElementById('sellStockTax').value = '';
+    
+    // 添加成功動畫
+    if (typeof window.addButtonSuccessAnimation === 'function') {
+        const button = document.querySelector('.action-theme .filled-button');
+        const card = button?.closest('.card');
+        if (button) window.addButtonSuccessAnimation(button);
+        if (card) window.triggerSuccessAnimation(card);
+    }
     
     alert('賣出紀錄新增成功！');
 }
@@ -671,6 +725,13 @@ export function updateStockHoldingsTable() {
 
     const holdings = calculateStockHoldings();
     
+    // 按最後交易日期降序排列（最新的在最上面）
+    holdings.sort((a, b) => {
+        const lastDateA = Math.max(...a.transactions.map(t => new Date(t.date)));
+        const lastDateB = Math.max(...b.transactions.map(t => new Date(t.date)));
+        return lastDateB - lastDateA;
+    });
+    
     tableBody.innerHTML = holdings.map(holding => {
         const currency = holding.market === '台股' ? 'TWD' : 'USD';
         const totalValue = holding.totalShares * holding.averagePrice;
@@ -685,41 +746,9 @@ export function updateStockHoldingsTable() {
                 <td>${holding.totalShares.toLocaleString()}</td>
                 <td>${currency} ${holding.averagePrice.toFixed(2)}</td>
                 <td>${currency} ${totalValue.toLocaleString()}</td>
-                <td>
-                    <button class="outlined-button" onclick="quickSell('${holding.market}', '${holding.code}', ${holding.totalShares})">
-                        <span class="material-icons">sell</span>
-                        快速賣出
-                    </button>
-                </td>
             </tr>
         `;
     }).join('');
-}
-
-/**
- * 快速賣出功能
- * @param {string} market - 市場
- * @param {string} code - 股票代碼
- * @param {number} maxShares - 最大可賣股數
- */
-export function quickSell(market, code, maxShares) {
-    // 填入賣出表單
-    document.getElementById('sellStockMarket').value = market;
-    
-    // 從持倉中找到對應的名稱
-    const holdings = calculateStockHoldings();
-    const holding = holdings.find(h => h.market === market && h.code === code);
-    
-    document.getElementById('sellStockCode').value = code;
-    document.getElementById('sellStockName').value = holding ? (holding.name || code) : code;
-    document.getElementById('sellStockShares').value = maxShares;
-    
-    // 更新表單狀態
-    updateSellStockForm();
-    
-    // 滾動到賣出表單位置
-    document.getElementById('sellStockCode').scrollIntoView({ behavior: 'smooth' });
-    document.getElementById('sellStockPrice').focus();
 }
 
 /**

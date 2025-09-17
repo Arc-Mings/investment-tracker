@@ -18,9 +18,57 @@
  * --------------------------------------------------
  */
 .form-row.core-fields {
-    grid-template-columns: repeat(4, 1fr); /* 核心欄位也是4欄 */
-    gap: var(--md-sys-spacing-medium);
+    grid-template-columns: repeat(4, 1fr); /* 調整為4欄佈局以配合股票賣出表單 */
+    gap: var(--md-sys-spacing-medium); /* 適中間距保持整體平衡 */
     margin-bottom: var(--md-sys-spacing-extra-large);
+}
+
+/* 買進表單特殊配置 - 保持3欄佈局 */
+.form-row.core-fields.buy-form {
+    grid-template-columns: repeat(3, 1fr); /* 買進表單維持3欄 */
+    gap: var(--md-sys-spacing-large); /* 增加間距以保持視覺平衡 */
+}
+
+/* 加密貨幣表單特殊配置 - 3欄居中佈局 */
+.form-row.core-fields.crypto-form {
+    grid-template-columns: repeat(3, 1fr); /* 加密貨幣表單3欄 */
+    gap: var(--md-sys-spacing-large); /* 增加間距以保持視覺平衡 */
+    justify-content: center; /* 整體居中 */
+    max-width: 75%; /* 限制最大寬度讓內容更集中 */
+    margin-left: auto; /* 左右自動邊距實現居中 */
+    margin-right: auto;
+}
+
+/* 加密貨幣表單一般行 - 3欄居中佈局 */
+.form-row.crypto-form {
+    grid-template-columns: repeat(3, 1fr); /* 3欄佈局 */
+    gap: var(--md-sys-spacing-large); /* 增加間距以保持視覺平衡 */
+    justify-content: center; /* 整體居中 */
+    max-width: 75%; /* 限制最大寬度讓內容更集中 */
+    margin-left: auto; /* 左右自動邊距實現居中 */
+    margin-right: auto;
+    margin-bottom: var(--md-sys-spacing-large);
+}
+
+/* 預售屋表單特殊配置 - 3欄居中佈局 */
+.form-row.core-fields.property-form {
+    grid-template-columns: repeat(3, 1fr); /* 預售屋表單3欄 */
+    gap: var(--md-sys-spacing-large); /* 增加間距以保持視覺平衡 */
+    justify-content: center; /* 整體居中 */
+    max-width: 75%; /* 限制最大寬度讓內容更集中 */
+    margin-left: auto; /* 左右自動邊距實現居中 */
+    margin-right: auto;
+}
+
+/* 預售屋表單一般行 - 3欄居中佈局 */
+.form-row.property-form {
+    grid-template-columns: repeat(3, 1fr); /* 3欄佈局 */
+    gap: var(--md-sys-spacing-large); /* 增加間距以保持視覺平衡 */
+    justify-content: center; /* 整體居中 */
+    max-width: 75%; /* 限制最大寬度讓內容更集中 */
+    margin-left: auto; /* 左右自動邊距實現居中 */
+    margin-right: auto;
+    margin-bottom: var(--md-sys-spacing-large);
 }
 
 /* 

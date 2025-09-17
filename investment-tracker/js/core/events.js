@@ -6,7 +6,7 @@
  */
 
 // 從各個功能模組導入需要公開的函式
-import { addStockBuyRecord, addStockSellRecord, deleteStockRecord, updateStockHoldingsTable, updateBuyStockForm, updateSellStockForm, quickSell, preloadPopularStocks } from '../features/stocks.js';
+import { addStockBuyRecord, addStockSellRecord, deleteStockRecord, updateStockHoldingsTable, updateBuyStockForm, updateSellStockForm, preloadPopularStocks } from '../features/stocks.js';
 import { addFundRecord, deleteFundRecord, updateFundHoldingsTable } from '../features/funds.js';
 import { addCryptoRecord, deleteCryptoRecord, updateCryptoHoldingsTable, initializeCryptoPage } from '../features/crypto.js';
 import { addPropertyRecord, deletePropertyRecord, addPaymentRecord, deletePaymentRecord } from '../features/property.js';
@@ -29,7 +29,6 @@ export function initializeEventListeners() {
     window.updateStockHoldingsTable = updateStockHoldingsTable;
     window.updateBuyStockForm = updateBuyStockForm;
     window.updateSellStockForm = updateSellStockForm;
-    window.quickSell = quickSell;
 
     // 基金
     window.addFundRecord = addFundRecord;
