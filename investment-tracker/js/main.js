@@ -24,9 +24,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateDatabaseStatus('connecting', '正在連線...');
     
     try {
-        // 等待後端服務準備就緒
+        // 等待後端服務準備就緒 - 減少重試次數和等待時間
         let retries = 0;
-        const maxRetries = 5; // 減少重試次數
+        const maxRetries = 2; // 大幅減少重試次數
         
         while (retries < maxRetries) {
             const isConnected = await checkDatabaseConnection();
@@ -38,7 +38,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 retries++;
                 if (retries < maxRetries) {
                     console.log(`⏳ 等待資料庫服務啟動... (${retries}/${maxRetries})`);
-                    await new Promise(resolve => setTimeout(resolve, 2000)); // 等待 2 秒
+                    updateDatabaseStatus('connecting', `連線中... (${retries}/${maxRetries})`);
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // 減少到 1 秒
                 } else {
                     throw new Error('無法連接到資料庫服務');
                 }
@@ -50,16 +51,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         
     } catch (error) {
         console.error('資料庫連線失敗:', error);
-        updateDatabaseStatus('disconnected', '資料庫離線');
+        updateDatabaseStatus('disconnected', '離線模式');
         
-        // 顯示友善的錯誤訊息，但不阻擋使用
-        const errorMsg = `資料庫連線失敗，將以離線模式運行\n\n您仍可以使用所有功能，但資料將暫時儲存在瀏覽器中\n\n如需使用資料庫功能，請重新啟動程式`;
+        // 顯示友善的通知訊息，但不阻擋使用
+        const errorMsg = `🔄 資料庫服務尚未就緒，目前以離線模式運行\n\n✅ 您仍可以正常使用所有功能\n💾 資料會儲存在本地，下次啟動時自動同步\n\n如需立即連接資料庫，請稍後重新啟動程式`;
         
+        // 延遲顯示通知，避免影響啟動體驗
         setTimeout(() => {
-            if (confirm(`${errorMsg}\n\n是否要查看技術詳情？`)) {
-                alert(`技術詳情：${error.message}`);
+            console.log('📢 顯示離線模式通知');
+            // 使用非阻塞式通知，改善用戶體驗
+            if (window.electronAPI) {
+                // 在 Electron 環境中使用更簡潔的通知
+                console.log(errorMsg);
+            } else {
+                alert(errorMsg);
             }
-        }, 2000);
+        }, 3000); // 延遲3秒後顯示
     }
     
     // 5. 初始化各功能頁面

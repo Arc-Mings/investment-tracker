@@ -320,7 +320,16 @@ export function importData(event) {
             
             // 簡單驗證檔案格式
             if (data.stocks && Array.isArray(data.stocks)) {
-                if (confirm('確定要匯入備份資料嗎？這將覆蓋目前的所有記錄！')) {
+                const confirmed = await window.showCustomDialog({
+                    icon: 'upload_file',
+                    title: '匯入備份資料',
+                    message: '確定要匯入備份資料嗎？\n這將覆蓋目前的所有記錄！',
+                    confirmText: '匯入',
+                    cancelText: '取消',
+                    type: 'danger'
+                });
+                
+                if (confirmed) {
                     // 先清空記憶體中的陣列
                     stockRecords.length = 0;
                     fundRecords.length = 0;
@@ -357,7 +366,16 @@ export function importData(event) {
  * 清空所有投資紀錄
  */
 export async function clearAllData() {
-    if (confirm('確定要清空所有投資紀錄嗎？此操作無法復原！')) {
+    const confirmed = await window.showCustomDialog({
+        icon: 'delete_forever',
+        title: '清空所有資料',
+        message: '確定要清空所有投資紀錄嗎？\n此操作無法復原！',
+        confirmText: '清空',
+        cancelText: '取消',
+        type: 'danger'
+    });
+    
+    if (confirmed) {
         try {
             // 清空記憶體中的陣列
             stockRecords.length = 0;

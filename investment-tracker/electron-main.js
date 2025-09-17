@@ -236,9 +236,10 @@ function createMainWindow() {
         show: false, // 先隱藏，載入完成後顯示
         // icon: path.join(__dirname, 'assets', 'icon.png'), // 暫時註解圖示
         webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false,
-            enableRemoteModule: true
+            nodeIntegration: false,
+            contextIsolation: true,
+            enableRemoteModule: false,
+            preload: path.join(__dirname, 'preload.js')
         },
         titleBarStyle: 'default', // Windows 標準標題列
         autoHideMenuBar: true // 隱藏選單列，避免阿嬤迷路
@@ -253,7 +254,28 @@ function createMainWindow() {
         console.log('✅ 主視窗已顯示');
     });
     
-    // 視窗關閉事件
+    // 視窗關閉事件 - 改為最小化到系統托盤而非關閉程式
+    mainWindow.on('close', (event) => {
+        if (!app.isQuiting) {
+            event.preventDefault();
+            mainWindow.hide();
+            console.log('📦 應用程式已最小化到背景');
+            
+            // 顯示提示訊息（僅第一次）
+            if (!global.hasShownHideMessage) {
+                global.hasShownHideMessage = true;
+                const { dialog } = require('electron');
+                dialog.showMessageBox(mainWindow, {
+                    type: 'info',
+                    title: '應用程式運行中',
+                    message: '投資紀錄表已最小化到背景運行',
+                    detail: '您的資料會自動儲存。要完全退出程式，請使用右上角的選單。',
+                    buttons: ['知道了']
+                });
+            }
+        }
+    });
+    
     mainWindow.on('closed', () => {
         mainWindow = null;
     });
@@ -273,24 +295,54 @@ app.whenReady().then(async () => {
     // 先啟動後端服務
     const backendStarted = await startBackendServer();
     
-    if (backendStarted) {
-        // 後端啟動成功，創建主視窗
-        createMainWindow();
-    } else {
-        // 後端啟動失敗，顯示錯誤對話框
-        const { dialog } = require('electron');
-        dialog.showErrorBox(
-            '啟動錯誤', 
-            '資料庫服務啟動失敗，請聯繫技術支援。'
-        );
-        app.quit();
+    // 無論後端是否啟動成功，都要創建主視窗，以離線模式運行
+    createMainWindow();
+    
+    if (!backendStarted) {
+        console.log('⚠️ 後端服務啟動失敗，程式將以離線模式運行');
+        // 不再顯示錯誤對話框，讓前端處理連線狀態顯示
     }
 });
 
 /**
- * 所有視窗關閉時的處理
+ * 所有視窗關閉時的處理 - 修改為不自動退出
  */
 app.on('window-all-closed', () => {
+    console.log('🛑 所有視窗已關閉，但程式繼續在背景運行');
+    // 移除自動退出，讓程式在背景運行
+    // Windows 和 Linux 用戶可以透過其他方式退出程式
+});
+
+/**
+ * macOS 重新激活處理 + Windows/Linux 重新顯示處理
+ */
+app.on('activate', () => {
+    if (mainWindow === null) {
+        createMainWindow();
+    } else if (mainWindow && !mainWindow.isVisible()) {
+        mainWindow.show();
+        console.log('📖 從背景恢復顯示視窗');
+    }
+});
+
+/**
+ * 雙擊應用程式圖標時重新顯示視窗 (Windows/Linux)
+ */
+app.on('second-instance', () => {
+    if (mainWindow) {
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        if (!mainWindow.isVisible()) mainWindow.show();
+        mainWindow.focus();
+        console.log('🔍 應用程式已從背景恢復');
+    }
+});
+
+/**
+ * IPC 事件處理
+ */
+ipcMain.on('quit-app', () => {
+    console.log('📤 收到退出應用程式請求');
+    
     // 關閉後端服務
     if (backendServer) {
         backendServer.close(() => {
@@ -298,19 +350,16 @@ app.on('window-all-closed', () => {
         });
     }
     
-    // macOS 以外的平台直接退出
-    if (process.platform !== 'darwin') {
-        app.quit();
-    }
+    app.isQuiting = true;
+    app.quit();
 });
 
 /**
- * macOS 重新激活處理
+ * 應用程式退出前的清理
  */
-app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-        createMainWindow();
-    }
+app.on('before-quit', () => {
+    console.log('👋 應用程式即將退出');
+    app.isQuiting = true;
 });
 
 /**

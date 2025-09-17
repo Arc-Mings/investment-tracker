@@ -107,8 +107,17 @@ export function updatePaymentTable() {
  * 刪除股票紀錄
  * @param {number} id - 紀錄在資料庫中的 ID
  */
-window.deleteStock = function(id) {
-    if (confirm('確定要刪除這筆股票紀錄嗎？')) {
+window.deleteStock = async function(id) {
+    const confirmed = await window.showCustomDialog({
+        icon: 'delete',
+        title: '刪除股票紀錄',
+        message: '確定要刪除這筆股票紀錄嗎？',
+        confirmText: '刪除',
+        cancelText: '取消',
+        type: 'danger'
+    });
+    
+    if (confirmed) {
         deleteRecord('stocks', id);
     }
 };
