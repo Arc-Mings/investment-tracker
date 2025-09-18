@@ -26,6 +26,7 @@
     <script src="backend/database/databaseIntegration.js"></script>
     <!-- Main JavaScript -->
     <script type="module" src="js/main.js"></script>
+    <script src="js/ui/customSelect.js"></script>
 </head>
 <body>
     <div class="container">
@@ -378,21 +379,19 @@
                         <h4 class="form-section-title">交易基本資訊</h4>
                         <div class="form-row core-fields">
                             <div class="text-field">
-                                <input type="text" id="cryptoSymbol" placeholder=" " list="cryptoSymbolList" required>
-                                <datalist id="cryptoSymbolList">
+                                <select id="cryptoSymbol" required>
                                     <option value="BTC">BTC (Bitcoin)</option>
                                     <option value="ETH">ETH (Ethereum)</option>
                                     <option value="BNB">BNB (Binance Coin)</option>
                                     <option value="ADA">ADA (Cardano)</option>
                                     <option value="SOL">SOL (Solana)</option>
-                                    <option value="DOT">DOT (Polkadot)</option>
-                                    <option value="MATIC">MATIC (Polygon)</option>
-                                    <option value="AVAX">AVAX (Avalanche)</option>
-                                    <option value="UNI">UNI (Uniswap)</option>
-                                    <option value="LINK">LINK (Chainlink)</option>
-                                </datalist>
+                                    <option value="DOGE">DOGE (狗狗幣)</option>
+                                    <option value="DUST">DUST</option>
+                                    <option value="USDC">USDC</option>
+                                    <option value="SHIB">SHIB (柴犬幣)</option>
+                                    <option value="OKB">OKB</option>
+                                </select>
                                 <label>幣種</label>
-                                <div class="helper-text">可自行輸入或選擇常見幣種</div>
                             </div>
                             <div class="text-field">
                                 <select id="cryptoType">

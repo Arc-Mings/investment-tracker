@@ -287,4 +287,185 @@
 
 .text-field.success .helper-text {
     color: var(--md-sys-color-success);
+}
+
+/* 
+ * MD3 自定義下拉選單組件
+ * --------------------------------------------------
+ */
+
+/* 自定義下拉選單容器 */
+.custom-select {
+    position: relative;
+    width: 100%;
+    margin: 0;
+    overflow: visible; /* 修復：確保下拉選項不被父容器截斷 */
+}
+
+/* 選單觸發按鈕 - 模擬原有的 text-field select 樣式 */
+.custom-select .select-trigger {
+    width: 100%;
+    padding: 28px var(--md-sys-spacing-medium) 12px var(--md-sys-spacing-medium);
+    border: 2px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--md-sys-shape-corner-large); /* MD3 推薦的大圓角 */
+    background-color: var(--md-sys-color-surface-container-high);
+    color: var(--md-sys-color-on-surface);
+    font-family: 'Roboto', sans-serif;
+    font-size: var(--md-sys-typescale-body-large-font-size);
+    font-weight: var(--md-sys-typescale-body-large-font-weight);
+    line-height: var(--md-sys-typescale-body-large-line-height);
+    min-height: 68px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    
+    /* M3 Expressive 彈性動畫 */
+    transition: 
+        border-color var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-spring-gentle),
+        background-color var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-spring-gentle),
+        transform var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+}
+
+/* 下拉箭頭 - 使用 MD3 風格 */
+.custom-select .select-trigger::after {
+    content: "";
+    width: 24px;
+    height: 24px;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23625B71'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 24px 24px;
+    transition: transform var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+}
+
+/* 展開狀態的箭頭旋轉 */
+.custom-select.open .select-trigger::after {
+    transform: rotate(180deg);
+}
+
+/* 觸發按鈕懸停狀態 */
+.custom-select .select-trigger:hover:not(:focus) {
+    border-color: var(--md-sys-color-on-surface);
+    background-color: var(--md-sys-color-surface-container-highest);
+    transform: translateY(-0.5px);
+    box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+}
+
+/* 觸發按鈕焦點狀態 */
+.custom-select .select-trigger:focus,
+.custom-select.open .select-trigger {
+    outline: none;
+    border-color: var(--md-sys-color-primary);
+    background-color: var(--md-sys-color-surface-container-highest);
+    box-shadow: 
+        0 0 0 2px var(--md-sys-color-primary),
+        0px 1px 3px 0px rgba(0, 0, 0, 0.3), 0px 4px 8px 3px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}
+
+/* 下拉選項容器 - 關鍵的圓角實現 */
+.custom-select .select-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--md-sys-color-surface-container-high);
+    border-radius: var(--md-sys-shape-corner-large); /* 整個容器的圓角 */
+    box-shadow: 0px 4px 12px 0px rgba(0, 0, 0, 0.15), 0px 8px 24px 6px rgba(0, 0, 0, 0.1);
+    overflow: visible; /* 修復：允許內容完全顯示 */
+    z-index: 9999; /* 修復：提高層級確保不被遮擋 */
+    max-height: 300px; /* 修復：設置最大高度 */
+    overflow-y: auto; /* 修復：超出時可滾動 */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: 
+        opacity var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-emphasized),
+        visibility var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-emphasized),
+        transform var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-emphasized);
+}
+
+/* 展開狀態的選項容器 */
+.custom-select.open .select-options {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* 個別選項樣式 - 統一標準，確保所有頁籤一致 */
+.text-field.custom-select .option,
+.custom-select .option {
+    padding: 16px var(--md-sys-spacing-medium) !important;
+    cursor: pointer;
+    color: var(--md-sys-color-on-surface);
+    font-family: 'Roboto', sans-serif;
+    font-size: var(--md-sys-typescale-body-large-font-size);
+    font-weight: var(--md-sys-typescale-body-large-font-weight);
+    line-height: var(--md-sys-typescale-body-large-line-height);
+    transition: background-color var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+    margin: 0 !important; /* 統一標準：選項間無額外邊距 */
+    border: none !important; /* 確保無邊框 */
+    box-sizing: border-box !important; /* 統一盒模型 */
+}
+
+/* 選項懸停狀態 - 提高特異性 */
+.text-field.custom-select .option:hover,
+.custom-select .option:hover {
+    background-color: var(--md-sys-color-primary-container) !important;
+    color: var(--md-sys-color-on-primary-container) !important;
+    margin: 0 !important;
+}
+
+/* 選中的選項 - 提高特異性 */
+.text-field.custom-select .option.selected,
+.custom-select .option.selected {
+    background-color: var(--md-sys-color-primary) !important;
+    color: var(--md-sys-color-on-primary) !important;
+    font-weight: var(--md-sys-typescale-body-large-font-weight) !important;
+    margin: 0 !important;
+}
+
+/* 第一個選項的上方圓角 */
+.custom-select .option:first-child {
+    border-top-left-radius: var(--md-sys-shape-corner-large);
+    border-top-right-radius: var(--md-sys-shape-corner-large);
+}
+
+/* 最後一個選項的下方圓角 */
+.custom-select .option:last-child {
+    border-bottom-left-radius: var(--md-sys-shape-corner-large);
+    border-bottom-right-radius: var(--md-sys-shape-corner-large);
+}
+
+/* 隱藏原生 select（如果需要保持向後相容性） */
+.custom-select select {
+    display: none;
+}
+
+/* 
+ * 修復加密貨幣和預售屋表單中自定義下拉選單的間距問題
+ * 覆蓋 .crypto-form 和 .property-form 的 gap 影響
+ * --------------------------------------------------
+ */
+.form-row.crypto-form .custom-select .option,
+.form-row.property-form .custom-select .option {
+    margin: 0 !important;
+    padding: 16px var(--md-sys-spacing-medium) !important;
+}
+
+.form-row.crypto-form .custom-select .select-options,
+.form-row.property-form .custom-select .select-options {
+    gap: 0 !important;
+    margin-top: 4px !important;
+}
+
+/* 確保所有自定義下拉選單的選項容器都有一致的間距 */
+.custom-select .select-options {
+    margin-top: 4px; /* 統一的小間距 */
+}
+
+.custom-select .select-trigger {
+    margin: 0; /* 確保觸發按鈕沒有多餘間距 */
 } 
