@@ -20,9 +20,46 @@
     <link rel="stylesheet" href="css/components/portfolio-cards.css">
     <!-- Responsive -->
     <link rel="stylesheet" href="css/responsive/responsive.css">
+    
+    <!-- MD3 下拉選單強制樣式 -->
+    <style>
+        /* 強制MD3下拉選單樣式 - 最高優先級 */
+        select, .text-field select {
+            border-radius: 16px !important;
+            border: 2px solid #79747E !important;
+            background-color: #F7F2FA !important;
+            box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15) !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            appearance: none !important;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23625B71'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 16px center !important;
+            background-size: 24px 24px !important;
+            padding-right: 56px !important;
+        }
+        
+        select:focus, .text-field select:focus {
+            border-color: #6750A4 !important;
+            background-color: #FEF7FF !important;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236750A4'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e") !important;
+            box-shadow: 0 0 0 2px #6750A4, 0px 1px 3px 0px rgba(0, 0, 0, 0.3), 0px 4px 8px 3px rgba(0, 0, 0, 0.15) !important;
+            transform: translateY(-1px) !important;
+        }
+        
+        select:hover:not(:focus), .text-field select:hover:not(:focus) {
+            border-color: #1D1B20 !important;
+            background-color: #FEF7FF !important;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23484248'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e") !important;
+            box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15) !important;
+            transform: translateY(-0.5px) !important;
+        }
+    </style>
+    
     <!-- Electron 應用程式：資料庫服務已整合到後端 -->
     <!-- Main JavaScript -->
     <script type="module" src="js/main.js"></script>
+    <script src="js/ui/customSelect.js"></script>
     
     <!-- 全局自定義對話框 -->
     <script>
@@ -475,21 +512,19 @@
                         <h4 class="form-section-title">交易基本資訊</h4>
                         <div class="form-row core-fields crypto-form">
                             <div class="text-field">
-                                <input type="text" id="cryptoSymbol" placeholder=" " list="cryptoSymbolList" required>
-                                <datalist id="cryptoSymbolList">
+                                <select id="cryptoSymbol" required>
                                     <option value="BTC">BTC (Bitcoin)</option>
                                     <option value="ETH">ETH (Ethereum)</option>
                                     <option value="BNB">BNB (Binance Coin)</option>
                                     <option value="ADA">ADA (Cardano)</option>
                                     <option value="SOL">SOL (Solana)</option>
-                                    <option value="DOT">DOT (Polkadot)</option>
-                                    <option value="MATIC">MATIC (Polygon)</option>
-                                    <option value="AVAX">AVAX (Avalanche)</option>
-                                    <option value="UNI">UNI (Uniswap)</option>
-                                    <option value="LINK">LINK (Chainlink)</option>
-                                </datalist>
+                                    <option value="DOGE">DOGE (Dogecoin)</option>
+                                    <option value="SHIB">SHIB (Shiba Inu)</option>
+                                    <option value="DUST">DUST</option>
+                                    <option value="USDC">USDC</option>
+                                    <option value="OKB">OKB</option>
+                                </select>
                                 <label>幣種</label>
-                                <div class="helper-text">可自行輸入或選擇常見幣種</div>
                             </div>
                             <div class="text-field">
                                 <select id="cryptoType">
