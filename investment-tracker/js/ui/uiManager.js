@@ -91,7 +91,13 @@ export async function initializeApp() {
     showTab('stocks');
     updateAllTablesAndSummary();
     updateLastSaveTime();
-    
+
+    // 初始化狀態徽章：若仍為 connecting，先隱藏，待有明確狀態再顯示
+    const statusElementBoot = document.getElementById('databaseStatus');
+    if (statusElementBoot && statusElementBoot.classList.contains('connecting')) {
+        statusElementBoot.style.display = 'none';
+    }
+
     // 如果 5 秒後狀態仍然是連線中，強制更新為離線模式
     setTimeout(() => {
         const statusElement = document.getElementById('databaseStatus');
@@ -122,6 +128,8 @@ export function updateDatabaseStatus(status, message) {
     // 設定狀態
     switch (status) {
         case 'connected':
+            // 正常情況不打擾：已連線時隱藏徽章
+            statusElement.style.display = 'none';
             statusElement.classList.add('connected');
             iconElement.textContent = 'cloud_done';
             textElement.textContent = message || 'electron-store 已就緒';
@@ -129,6 +137,7 @@ export function updateDatabaseStatus(status, message) {
             break;
         case 'disconnected':
         case 'error':
+            statusElement.style.display = '';
             statusElement.classList.add('disconnected');
             iconElement.textContent = 'cloud_off';
             textElement.textContent = message || '存儲不可用';
@@ -136,7 +145,9 @@ export function updateDatabaseStatus(status, message) {
             break;
         case 'connecting':
         default:
+            // 初始化期間隱藏徽章，避免長時間顯示「初始化中」
             statusElement.classList.add('connecting');
+            statusElement.style.display = 'none';
             iconElement.textContent = 'storage';
             textElement.textContent = message || '初始化中...';
             statusElement.title = '正在初始化 electron-store';

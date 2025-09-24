@@ -113,6 +113,49 @@ class StoreManager {
     }
 
     /**
+     * 匯出所有資料到 JSON 檔案
+     */
+    async exportData() {
+        await this.ensureInitialized();
+        if (!this.isElectron) {
+            throw new Error('離線模式無法匯出資料');
+        }
+        const data = await this.load();
+        const result = await window.electronAPI.showSaveDialog();
+        if (result?.canceled) {
+            return false;
+        }
+        const filepath = result.filePath || result.filepath;
+        if (!filepath) return false;
+        const ok = await window.electronAPI.writeFile(filepath, JSON.stringify(data, null, 2));
+        if (!ok) throw new Error('寫入檔案失敗');
+        return true;
+    }
+
+    /**
+     * 匯入 JSON 檔案資料並覆蓋現有資料
+     */
+    async importData(data) {
+        await this.ensureInitialized();
+        if (!this.isElectron) {
+            throw new Error('離線模式無法匯入資料');
+        }
+        return await this.save(data);
+    }
+
+    /**
+     * 清空所有資料
+     */
+    async clearAll() {
+        await this.ensureInitialized();
+        if (!this.isElectron) {
+            throw new Error('離線模式無法清空資料');
+        }
+        await window.electronAPI.store.clear();
+        return true;
+    }
+
+    /**
      * 獲取存儲狀態
      */
     getStatus() {
