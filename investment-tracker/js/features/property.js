@@ -8,8 +8,34 @@
  */
 
 import { propertyRecords, paymentRecords } from '../core/state.js';
-import { saveToLocalStorage } from '../data/storage.js';
+import { storeManager } from '../data/storeManager.js';
+import { validateData } from '../data/dataStructure.js';
 import { updateAllTablesAndSummary } from './summary.js';
+
+/**
+ * 保存投資組合資料到 electron-store
+ */
+async function savePortfolioData() {
+    try {
+        const portfolioData = {
+            stocks: window.stockRecords || [],
+            crypto: window.cryptoRecords || [],
+            funds: window.fundRecords || [],
+            property: propertyRecords,
+            payments: paymentRecords
+        };
+        
+        const validatedData = validateData(portfolioData);
+        await storeManager.save(validatedData);
+        console.log('✅ 房地產資料保存成功');
+        
+    } catch (error) {
+        console.error('❌ 房地產資料保存失敗:', error);
+        if (typeof window.mdAlert === 'function') {
+            window.mdAlert('資料保存失敗，請稍後重試');
+        }
+    }
+}
 
 /**
  * 初始化房產頁面
@@ -65,7 +91,7 @@ export function initializePropertyPage() {
 /**
  * 從表單獲取輸入，新增一筆房產紀錄。
  */
-export function addPropertyRecord() {
+export async function addPropertyRecord() {
     const name = document.getElementById('propertyName')?.value;
     const total = parseFloat(document.getElementById('propertyTotal')?.value);
     const down = parseFloat(document.getElementById('propertyDown')?.value);
@@ -86,7 +112,7 @@ export function addPropertyRecord() {
 
     propertyRecords.push({ id: Date.now(), name, total, down, loan, rate, years });
     updateAllTablesAndSummary();
-    saveToLocalStorage();
+    await savePortfolioData();
     
     // 添加成功動畫
     if (typeof window.addButtonSuccessAnimation === 'function') {
@@ -127,13 +153,13 @@ export function updatePropertyTable() {
  * 根據 ID 刪除一筆房產紀錄。
  * @param {number} id - 要刪除的房產紀錄 ID。
  */
-export function deletePropertyRecord(id) {
+export async function deletePropertyRecord(id) {
     if (confirm('確定要刪除這筆房產資訊嗎？')) {
         const index = propertyRecords.findIndex(r => r.id === id);
         if (index > -1) {
             propertyRecords.splice(index, 1);
             updateAllTablesAndSummary();
-            saveToLocalStorage();
+            await savePortfolioData(); // ✅ 現在可以使用 await
         }
     }
 }
@@ -144,7 +170,7 @@ export function deletePropertyRecord(id) {
 /**
  * 從表單獲取輸入，新增一筆房貸繳款紀錄。
  */
-export function addPaymentRecord() {
+export async function addPaymentRecord() {
     const date = document.getElementById('paymentDate')?.value;
     const amount = parseFloat(document.getElementById('paymentAmount')?.value);
     const principal = parseFloat(document.getElementById('principalAmount')?.value);
@@ -163,7 +189,7 @@ export function addPaymentRecord() {
 
     paymentRecords.push({ id: Date.now(), date, amount, principal, interest });
     updateAllTablesAndSummary();
-    saveToLocalStorage();
+    await savePortfolioData();
     
     // 添加成功動畫
     if (typeof window.addButtonSuccessAnimation === 'function') {
@@ -207,13 +233,13 @@ export function updatePaymentTable() {
  * 根據 ID 刪除一筆房貸繳款紀錄。
  * @param {number} id - 要刪除的繳款紀錄 ID。
  */
-export function deletePaymentRecord(id) {
+export async function deletePaymentRecord(id) {
     if (confirm('確定要刪除這筆繳款紀錄嗎？')) {
         const index = paymentRecords.findIndex(r => r.id === id);
         if (index > -1) {
             paymentRecords.splice(index, 1);
             updateAllTablesAndSummary();
-            saveToLocalStorage();
+            await savePortfolioData(); // ✅ 現在可以使用 await
         }
     }
-} 
+}

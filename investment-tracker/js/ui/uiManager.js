@@ -8,12 +8,8 @@
  * 3. 應用程式初始化。
  */
 
-import { loadFromDatabase } from '../data/electronStorage.js';
+// 功能頁面初始化已移至 main.js，減少重複導入
 import { updateAllTablesAndSummary } from '../features/summary.js';
-import { initializeStockPage } from '../features/stocks.js';
-import { initializeFundPage } from '../features/funds.js';
-import { initializeCryptoPage } from '../features/crypto.js';
-import { initializePropertyPage } from '../features/property.js';
 
 /**
  * 處理導覽頁籤的點擊事件，切換顯示的內容區塊。
@@ -54,25 +50,17 @@ export function showTab(tabName) {
 
 /**
  * 更新頁面上顯示的「最後儲存時間」。
+ * @param {Date} time - 可選的時間物件，如果未提供則使用當前時間
  */
-export function updateLastSaveTime() {
+export function updateLastSaveTime(time = new Date()) {
     const element = document.getElementById('lastSaveTime');
     if (!element) return;
     
     try {
-        const saved = localStorage.getItem('investmentTracker');
-        if (saved) {
-            const data = JSON.parse(saved);
-            if (data.lastSave) {
-                const time = new Date(data.lastSave);
-                element.textContent = time.toLocaleString('zh-TW');
-                return;
-            }
-        }
-        element.textContent = '從未保存';
+        element.textContent = time.toLocaleString('zh-TW');
     } catch (error) {
         console.error("Failed to update last save time:", error);
-        element.textContent = '讀取錯誤';
+        element.textContent = '時間格式錯誤';
     }
 }
 
@@ -97,19 +85,21 @@ export async function initializeApp() {
         if (input) input.value = today;
     });
 
-    // 載入已儲存的資料
-    await loadFromDatabase();
-    
-    // 初始化各功能頁面
-    initializeStockPage();
-    initializeFundPage();
-    initializeCryptoPage();
-    initializePropertyPage();
+    // 資料載入和功能頁面初始化由 main.js 處理，這裡不重複載入
 
     // 頁面載入後，預設顯示第一個頁籤並更新所有UI
     showTab('stocks');
     updateAllTablesAndSummary();
     updateLastSaveTime();
+    
+    // 如果 5 秒後狀態仍然是連線中，強制更新為離線模式
+    setTimeout(() => {
+        const statusElement = document.getElementById('databaseStatus');
+        if (statusElement && statusElement.classList.contains('connecting')) {
+            console.warn('⚠️ 資料庫狀態仍為連線中，強制設定為離線模式');
+            updateDatabaseStatus('disconnected', '離線模式 - 初始化超時');
+        }
+    }, 5000);
 
     console.log("UI Manager initialized.");
 }
@@ -134,21 +124,22 @@ export function updateDatabaseStatus(status, message) {
         case 'connected':
             statusElement.classList.add('connected');
             iconElement.textContent = 'cloud_done';
-            textElement.textContent = message || 'SQLite 已連線';
-            statusElement.title = 'SQLite 資料庫已連線，資料會自動雙重備份';
+            textElement.textContent = message || 'electron-store 已就緒';
+            statusElement.title = 'electron-store 資料持久化已就緒';
             break;
         case 'disconnected':
+        case 'error':
             statusElement.classList.add('disconnected');
             iconElement.textContent = 'cloud_off';
-            textElement.textContent = message || '僅本地儲存';
-            statusElement.title = '資料庫未連線，僅使用 localStorage 儲存';
+            textElement.textContent = message || '存儲不可用';
+            statusElement.title = 'electron-store 不可用，可能影響資料持久化';
             break;
         case 'connecting':
         default:
             statusElement.classList.add('connecting');
             iconElement.textContent = 'storage';
-            textElement.textContent = message || '連線中...';
-            statusElement.title = '正在嘗試連線到 SQLite 資料庫';
+            textElement.textContent = message || '初始化中...';
+            statusElement.title = '正在初始化 electron-store';
             break;
     }
 } 

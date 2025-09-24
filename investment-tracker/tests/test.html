@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MD3 風格訊息框測試</title>
+    <style>
+        /* MD3 Design System Colors */
+        :root {
+            --md-sys-color-primary: #6750A4;
+            --md-sys-color-on-primary: #FFFFFF;
+            --md-sys-color-primary-container: #EADDFF;
+            --md-sys-color-on-primary-container: #21005D;
+            
+            --md-sys-color-secondary: #625B71;
+            --md-sys-color-on-secondary: #FFFFFF;
+            --md-sys-color-secondary-container: #E8DEF8;
+            --md-sys-color-on-secondary-container: #1D192B;
+            
+            --md-sys-color-error: #BA1A1A;
+            --md-sys-color-on-error: #FFFFFF;
+            --md-sys-color-error-container: #FFDAD6;
+            --md-sys-color-on-error-container: #410002;
+            
+            --md-sys-color-surface: #FEF7FF;
+            --md-sys-color-on-surface: #1D1B20;
+            --md-sys-color-surface-variant: #E7E0EC;
+            --md-sys-color-on-surface-variant: #49454F;
+            
+            --md-sys-color-outline: #79747E;
+            --md-sys-color-outline-variant: #CAC4D0;
+            
+            /* MD3 Typography */
+            --md-sys-typescale-headline-small-font: 'Noto Sans TC', sans-serif;
+            --md-sys-typescale-headline-small-size: 24px;
+            --md-sys-typescale-headline-small-weight: 400;
+            --md-sys-typescale-headline-small-line-height: 32px;
+            
+            --md-sys-typescale-body-medium-font: 'Noto Sans TC', sans-serif;
+            --md-sys-typescale-body-medium-size: 14px;
+            --md-sys-typescale-body-medium-weight: 400;
+            --md-sys-typescale-body-medium-line-height: 20px;
+            
+            --md-sys-typescale-label-large-font: 'Noto Sans TC', sans-serif;
+            --md-sys-typescale-label-large-size: 14px;
+            --md-sys-typescale-label-large-weight: 500;
+            --md-sys-typescale-label-large-line-height: 20px;
+        }
+
+        body {
+            font-family: var(--md-sys-typescale-body-medium-font);
+            background-color: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+            margin: 0;
+            padding: 20px;
+            line-height: var(--md-sys-typescale-body-medium-line-height);
+        }
+
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .test-section {
+            margin-bottom: 32px;
+            padding: 24px;
+            background-color: var(--md-sys-color-surface-variant);
+            border-radius: 12px;
+        }
+
+        .test-title {
+            font-family: var(--md-sys-typescale-headline-small-font);
+            font-size: var(--md-sys-typescale-headline-small-size);
+            font-weight: var(--md-sys-typescale-headline-small-weight);
+            line-height: var(--md-sys-typescale-headline-small-line-height);
+            color: var(--md-sys-color-on-surface);
+            margin-bottom: 16px;
+        }
+
+        .test-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .md-button {
+            font-family: var(--md-sys-typescale-label-large-font);
+            font-size: var(--md-sys-typescale-label-large-size);
+            font-weight: var(--md-sys-typescale-label-large-weight);
+            line-height: var(--md-sys-typescale-label-large-line-height);
+            
+            padding: 10px 24px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            min-height: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .md-button.filled {
+            background-color: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+        }
+
+        .md-button.filled:hover {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        }
+
+        .md-button.outlined {
+            background-color: transparent;
+            color: var(--md-sys-color-primary);
+            border: 1px solid var(--md-sys-color-outline);
+        }
+
+        .md-button.text {
+            background-color: transparent;
+            color: var(--md-sys-color-primary);
+        }
+
+        /* MD3 Dialog Overlay */
+        .md-dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.32);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        .md-dialog-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* MD3 Dialog Container */
+        .md-dialog {
+            background-color: var(--md-sys-color-surface);
+            border-radius: 28px;
+            box-shadow: 0 8px 10px rgba(0,0,0,0.14), 0 3px 14px rgba(0,0,0,0.12), 0 5px 5px rgba(0,0,0,0.2);
+            max-width: 560px;
+            min-width: 280px;
+            max-height: 80vh;
+            overflow: hidden;
+            transform: scale(0.8);
+            transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        .md-dialog-overlay.show .md-dialog {
+            transform: scale(1);
+        }
+
+        /* Dialog Header */
+        .md-dialog-header {
+            padding: 24px 24px 16px 24px;
+        }
+
+        .md-dialog-icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .md-dialog-title {
+            font-family: var(--md-sys-typescale-headline-small-font);
+            font-size: var(--md-sys-typescale-headline-small-size);
+            font-weight: var(--md-sys-typescale-headline-small-weight);
+            line-height: var(--md-sys-typescale-headline-small-line-height);
+            color: var(--md-sys-color-on-surface);
+            margin: 0;
+        }
+
+        /* Dialog Content */
+        .md-dialog-content {
+            padding: 0 24px 24px 24px;
+        }
+
+        .md-dialog-message {
+            font-family: var(--md-sys-typescale-body-medium-font);
+            font-size: var(--md-sys-typescale-body-medium-size);
+            font-weight: var(--md-sys-typescale-body-medium-weight);
+            line-height: var(--md-sys-typescale-body-medium-line-height);
+            color: var(--md-sys-color-on-surface-variant);
+            margin: 0;
+        }
+
+        /* Dialog Actions */
+        .md-dialog-actions {
+            padding: 0 24px 24px 24px;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .md-dialog-actions .md-button {
+            min-width: 64px;
+        }
+
+        /* Dialog Types */
+        .md-dialog.error .md-dialog-icon {
+            color: var(--md-sys-color-error);
+        }
+
+        .md-dialog.warning .md-dialog-icon {
+            color: #F57C00;
+        }
+
+        .md-dialog.success .md-dialog-icon {
+            color: #2E7D32;
+        }
+
+        .md-dialog.info .md-dialog-icon {
+            color: var(--md-sys-color-primary);
+        }
+
+        /* Material Icons */
+        .material-icons {
+            font-family: 'Material Icons';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+        }
+
+        /* Input Dialog */
+        .md-dialog-input {
+            margin-top: 16px;
+        }
+
+        .md-text-field {
+            position: relative;
+            width: 100%;
+        }
+
+        .md-text-field input {
+            width: 100%;
+            padding: 16px 16px 8px 16px;
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: 4px;
+            background-color: var(--md-sys-color-surface);
+            color: var(--md-sys-color-on-surface);
+            font-family: var(--md-sys-typescale-body-medium-font);
+            font-size: var(--md-sys-typescale-body-medium-size);
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .md-text-field input:focus {
+            border-color: var(--md-sys-color-primary);
+            border-width: 2px;
+        }
+
+        .md-text-field label {
+            position: absolute;
+            left: 16px;
+            top: 16px;
+            color: var(--md-sys-color-on-surface-variant);
+            font-size: var(--md-sys-typescale-body-medium-size);
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            pointer-events: none;
+            background-color: var(--md-sys-color-surface);
+            padding: 0 4px;
+        }
+
+        .md-text-field input:focus + label,
+        .md-text-field input:not(:placeholder-shown) + label {
+            top: -8px;
+            font-size: 12px;
+            color: var(--md-sys-color-primary);
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="test-title">MD3 風格訊息框測試</h1>
+        
+        <div class="test-section">
+            <h2 class="test-title">Alert 訊息框測試</h2>
+            <div class="test-buttons">
+                <button class="md-button filled" onclick="showAlert('error', '錯誤', '請填寫所有必要欄位！')">錯誤訊息</button>
+                <button class="md-button filled" onclick="showAlert('warning', '警告', '股數必須是正數')">警告訊息</button>
+                <button class="md-button filled" onclick="showAlert('success', '成功', '買進紀錄新增成功！')">成功訊息</button>
+                <button class="md-button filled" onclick="showAlert('info', '資訊', '這是一般資訊提示')">一般訊息</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-title">Confirm 確認框測試</h2>
+            <div class="test-buttons">
+                <button class="md-button outlined" onclick="showConfirm('確認刪除', '確定要刪除這筆紀錄嗎？', handleConfirmResult)">刪除確認</button>
+                <button class="md-button outlined" onclick="showConfirm('確認賣出', '確定要執行賣出嗎？\\n\\n股票：台積電 (2330)\\n數量：1000 股\\n價格：NT$ 500', handleConfirmResult)">賣出確認</button>
+                <button class="md-button outlined" onclick="showConfirm('資料匯入', '確定要匯入備份資料嗎？這將覆蓋目前的所有記錄！', handleConfirmResult)">匯入確認</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-title">Input 輸入框測試</h2>
+            <div class="test-buttons">
+                <button class="md-button text" onclick="showInput('請輸入股票代號', '股票代號', handleInputResult)">輸入股票代號</button>
+                <button class="md-button text" onclick="showInput('請輸入投資金額', '投資金額', handleInputResult)">輸入金額</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MD3 Dialog HTML Template -->
+    <div id="mdDialogOverlay" class="md-dialog-overlay">
+        <div id="mdDialog" class="md-dialog">
+            <div class="md-dialog-header">
+                <div id="mdDialogIcon" class="md-dialog-icon">
+                    <span class="material-icons"></span>
+                </div>
+                <h2 id="mdDialogTitle" class="md-dialog-title"></h2>
+            </div>
+            <div class="md-dialog-content">
+                <p id="mdDialogMessage" class="md-dialog-message"></p>
+                <div id="mdDialogInput" class="md-dialog-input" style="display: none;">
+                    <div class="md-text-field">
+                        <input type="text" id="mdDialogInputField" placeholder=" ">
+                        <label id="mdDialogInputLabel"></label>
+                    </div>
+                </div>
+            </div>
+            <div id="mdDialogActions" class="md-dialog-actions">
+                <!-- 按鈕將由 JavaScript 動態生成 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // MD3 Dialog System
+        class MD3Dialog {
+            constructor() {
+                this.overlay = document.getElementById('mdDialogOverlay');
+                this.dialog = document.getElementById('mdDialog');
+                this.icon = document.getElementById('mdDialogIcon');
+                this.title = document.getElementById('mdDialogTitle');
+                this.message = document.getElementById('mdDialogMessage');
+                this.actions = document.getElementById('mdDialogActions');
+                this.inputContainer = document.getElementById('mdDialogInput');
+                this.inputField = document.getElementById('mdDialogInputField');
+                this.inputLabel = document.getElementById('mdDialogInputLabel');
+                
+                this.currentCallback = null;
+                this.setupEventListeners();
+            }
+            
+            setupEventListeners() {
+                // 點擊背景關閉對話框
+                this.overlay.addEventListener('click', (e) => {
+                    if (e.target === this.overlay) {
+                        this.hide();
+                    }
+                });
+                
+                // ESC 鍵關閉對話框
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && this.overlay.classList.contains('show')) {
+                        this.hide();
+                    }
+                });
+            }
+            
+            show() {
+                this.overlay.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            hide() {
+                this.overlay.classList.remove('show');
+                document.body.style.overflow = '';
+                this.currentCallback = null;
+            }
+            
+            alert(type, title, message) {
+                this.setDialogType(type);
+                this.title.textContent = title;
+                this.message.textContent = message;
+                this.inputContainer.style.display = 'none';
+                
+                this.actions.innerHTML = `
+                    <button class="md-button filled" onclick="mdDialog.hide()">確定</button>
+                `;
+                
+                this.show();
+            }
+            
+            confirm(title, message, callback) {
+                this.setDialogType('warning');
+                this.title.textContent = title;
+                this.message.textContent = message;
+                this.inputContainer.style.display = 'none';
+                this.currentCallback = callback;
+                
+                this.actions.innerHTML = `
+                    <button class="md-button text" onclick="mdDialog.handleConfirm(false)">取消</button>
+                    <button class="md-button filled" onclick="mdDialog.handleConfirm(true)">確定</button>
+                `;
+                
+                this.show();
+            }
+            
+            input(title, label, callback) {
+                this.setDialogType('info');
+                this.title.textContent = title;
+                this.message.textContent = '';
+                this.inputContainer.style.display = 'block';
+                this.inputLabel.textContent = label;
+                this.inputField.value = '';
+                this.currentCallback = callback;
+                
+                this.actions.innerHTML = `
+                    <button class="md-button text" onclick="mdDialog.handleInput(null)">取消</button>
+                    <button class="md-button filled" onclick="mdDialog.handleInput(mdDialog.inputField.value)">確定</button>
+                `;
+                
+                this.show();
+                
+                // 聚焦到輸入框
+                setTimeout(() => {
+                    this.inputField.focus();
+                }, 100);
+            }
+            
+            setDialogType(type) {
+                // 清除所有類型
+                this.dialog.classList.remove('error', 'warning', 'success', 'info');
+                this.dialog.classList.add(type);
+                
+                const iconElement = this.icon.querySelector('.material-icons');
+                switch (type) {
+                    case 'error':
+                        iconElement.textContent = 'error';
+                        break;
+                    case 'warning':
+                        iconElement.textContent = 'warning';
+                        break;
+                    case 'success':
+                        iconElement.textContent = 'check_circle';
+                        break;
+                    case 'info':
+                    default:
+                        iconElement.textContent = 'info';
+                        break;
+                }
+            }
+            
+            handleConfirm(result) {
+                if (this.currentCallback) {
+                    this.currentCallback(result);
+                }
+                this.hide();
+            }
+            
+            handleInput(value) {
+                if (this.currentCallback) {
+                    this.currentCallback(value);
+                }
+                this.hide();
+            }
+        }
+        
+        // 初始化全局對話框實例
+        const mdDialog = new MD3Dialog();
+        
+        // 測試函數
+        function showAlert(type, title, message) {
+            mdDialog.alert(type, title, message);
+        }
+        
+        function showConfirm(title, message, callback) {
+            mdDialog.confirm(title, message, callback);
+        }
+        
+        function showInput(title, label, callback) {
+            mdDialog.input(title, label, callback);
+        }
+        
+        function handleConfirmResult(result) {
+            console.log('確認結果:', result);
+            mdDialog.alert('info', '結果', `您選擇了：${result ? '確定' : '取消'}`);
+        }
+        
+        function handleInputResult(value) {
+            console.log('輸入結果:', value);
+            if (value !== null) {
+                mdDialog.alert('success', '輸入完成', `您輸入了：${value || '(空值)'}`);
+            }
+        }
+        
+        // 全局函數，替代原生對話框
+        window.mdAlert = (message, type = 'info') => {
+            mdDialog.alert(type, type === 'error' ? '訊息' : type === 'warning' ? '警告' : type === 'success' ? '成功' : '訊息', message);
+        };
+        
+        window.mdConfirm = (message, callback) => {
+            mdDialog.confirm('確認', message, callback);
+        };
+        
+        window.mdPrompt = (message, defaultValue = '', callback) => {
+            mdDialog.input('輸入', message, callback);
+        };
+    </script>
+</body>
+</html>

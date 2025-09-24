@@ -10,9 +10,35 @@
  */
 
 import { fundRecords } from '../core/state.js';
-import { saveToLocalStorage } from '../data/storage.js';
+import { storeManager } from '../data/storeManager.js';
+import { validateData } from '../data/dataStructure.js';
 import { updateAllTablesAndSummary } from './summary.js';
 import { calculateFundHoldings } from './portfolio.js';
+
+/**
+ * 保存投資組合資料到 electron-store
+ */
+async function savePortfolioData() {
+    try {
+        const portfolioData = {
+            stocks: window.stockRecords || [],
+            crypto: window.cryptoRecords || [],
+            funds: fundRecords,
+            property: window.propertyRecords || [],
+            payments: window.paymentRecords || []
+        };
+        
+        const validatedData = validateData(portfolioData);
+        await storeManager.save(validatedData);
+        console.log('✅ 基金資料保存成功');
+        
+    } catch (error) {
+        console.error('❌ 基金資料保存失敗:', error);
+        if (typeof window.mdAlert === 'function') {
+            window.mdAlert('資料保存失敗，請稍後重試');
+        }
+    }
+}
 
 /**
  * 初始化基金頁面的事件監聽器
@@ -89,7 +115,7 @@ export function initializeFundPage() {
 /**
  * 從表單獲取輸入，新增一筆基金紀錄。
  */
-export function addFundRecord() {
+export async function addFundRecord() {
     const type = document.getElementById('fundType')?.value || '買入';
     const name = document.getElementById('fundName')?.value;
     const date = document.getElementById('fundDate')?.value;
@@ -99,13 +125,13 @@ export function addFundRecord() {
     const fee = parseFloat(document.getElementById('fundFee')?.value) || 0;
 
     if (!name || !date || isNaN(amount) || isNaN(nav) || isNaN(units)) {
-        alert('請填寫所有必要欄位');
+        mdAlert('請填寫所有必要欄位', 'error');
         return;
     }
     
     // 檢查數值不能為負數
     if (amount < 0 || nav < 0 || units < 0 || fee < 0) {
-        alert('所有金額和數量都不能為負數');
+        mdAlert('所有金額和數量都不能為負數', 'error');
         return;
     }
 
@@ -115,7 +141,7 @@ export function addFundRecord() {
         const holding = holdings.find(h => h.name === name);
         
         if (!holding || holding.totalUnits < units) {
-            alert(`持有單位數不足！目前持有 ${holding ? holding.totalUnits.toFixed(4) : 0} 單位`);
+            mdAlert(`持有單位數不足！目前持有 ${holding ? holding.totalUnits.toFixed(4) : 0} 單位`, 'error');
             return;
         }
         
@@ -133,11 +159,20 @@ export function addFundRecord() {
 • 報酬率：${profitLossPercentage >= 0 ? '+' : ''}${profitLossPercentage.toFixed(2)}%
         `;
         
-        if (!confirm(message + '\n\n確定要執行贖回嗎？')) {
-            return;
-        }
+        mdConfirm(message + '\n\n確定要執行贖回嗎？', (confirmed) => {
+            if (confirmed) {
+                // 執行贖回邏輯
+                executeFundTrade(name, type, date, amount, nav, units, fee);
+            }
+        });
+        return;
     }
+    
+    // 執行申購邏輯
+    executeFundTrade(name, type, date, amount, nav, units, fee);
+}
 
+function executeFundTrade(name, type, date, amount, nav, units, fee) {
     fundRecords.push({ 
         id: Date.now(), 
         type, 
@@ -151,7 +186,7 @@ export function addFundRecord() {
     
     updateAllTablesAndSummary();
     updateFundHoldingsTable();
-    saveToLocalStorage();
+    savePortfolioData(); // 移除 await
     
     // 添加成功動畫
     if (typeof window.addButtonSuccessAnimation === 'function') {
@@ -230,13 +265,15 @@ export function updateFundHoldingsTable() {
  * @param {number} id - 要刪除的紀錄 ID。
  */
 export function deleteFundRecord(id) {
-    if (confirm('確定要刪除這筆紀錄嗎？')) {
-        const index = fundRecords.findIndex(r => r.id === id);
-        if (index > -1) {
-            fundRecords.splice(index, 1);
-            updateAllTablesAndSummary();
-            updateFundHoldingsTable();
-            saveToLocalStorage();
+    mdConfirm('確定要刪除這筆紀錄嗎？', async (confirmed) => {
+        if (confirmed) {
+            const index = fundRecords.findIndex(r => r.id === id);
+            if (index > -1) {
+                fundRecords.splice(index, 1);
+                updateAllTablesAndSummary();
+                updateFundHoldingsTable();
+                await savePortfolioData();
+            }
         }
-    }
+    });
 } 

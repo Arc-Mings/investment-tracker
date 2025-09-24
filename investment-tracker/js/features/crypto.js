@@ -10,9 +10,35 @@
  */
 
 import { cryptoRecords } from '../core/state.js';
-import { saveToLocalStorage } from '../data/storage.js';
+import { storeManager } from '../data/storeManager.js';
+import { validateData } from '../data/dataStructure.js';
 import { updateAllTablesAndSummary } from './summary.js';
 import { calculateCryptoHoldings } from './portfolio.js';
+
+/**
+ * 保存投資組合資料到 electron-store
+ */
+async function savePortfolioData() {
+    try {
+        const portfolioData = {
+            stocks: window.stockRecords || [],
+            crypto: cryptoRecords,
+            funds: window.fundRecords || [],
+            property: window.propertyRecords || [],
+            payments: window.paymentRecords || []
+        };
+        
+        const validatedData = validateData(portfolioData);
+        await storeManager.save(validatedData);
+        console.log('✅ 加密貨幣資料保存成功');
+        
+    } catch (error) {
+        console.error('❌ 加密貨幣資料保存失敗:', error);
+        if (typeof window.mdAlert === 'function') {
+            window.mdAlert('資料保存失敗，請稍後重試');
+        }
+    }
+}
 
 /**
  * 格式化加密貨幣數量顯示（最多8位小數，去除尾隨零）
@@ -137,7 +163,7 @@ export function initializeCryptoPage() {
 /**
  * 從表單獲取輸入，新增一筆加密貨幣紀錄。
  */
-export function addCryptoRecord() {
+export async function addCryptoRecord() {
     const symbol = document.getElementById('cryptoSymbol')?.value;
     const type = document.getElementById('cryptoType')?.value;
     const date = document.getElementById('cryptoDate')?.value;
@@ -147,32 +173,32 @@ export function addCryptoRecord() {
 
     // 驗證數量格式和轉換
     if (!amountStr || !/^\d*\.?\d*$/.test(amountStr)) {
-        alert('請輸入有效的數量格式（例如：0.00000001）');
+        mdAlert('請輸入有效的數量格式（例如：0.00000001）', 'error');
         return;
     }
     
     const amount = parseFloat(amountStr);
     
     if (!symbol || !date || isNaN(amount) || isNaN(price)) {
-        alert('請填寫所有必要欄位');
+        mdAlert('請填寫所有必要欄位', 'error');
         return;
     }
-
+    
     // 檢查數量是否為正數
     if (amount <= 0) {
-        alert('數量必須大於0');
+        mdAlert('數量必須大於0', 'error');
         return;
     }
-
+    
     // 檢查價格是否為正數
     if (price <= 0) {
-        alert('價格必須大於0');
+        mdAlert('價格必須大於0', 'error');
         return;
     }
-
+    
     // 檢查手續費是否為負數
     if (fee < 0) {
-        alert('手續費不能為負數');
+        mdAlert('手續費不能為負數', 'error');
         return;
     }
 
@@ -182,7 +208,7 @@ export function addCryptoRecord() {
         const holding = holdings.find(h => h.symbol === symbol);
         
         if (!holding || holding.totalAmount < amount) {
-            alert(`持有數量不足！目前持有 ${holding ? formatCryptoAmount(holding.totalAmount) : 0} ${symbol}`);
+            mdAlert(`持有數量不足！目前持有 ${holding ? formatCryptoAmount(holding.totalAmount) : 0} ${symbol}`, 'error');
             return;
         }
         
@@ -200,18 +226,62 @@ export function addCryptoRecord() {
 • 報酬率：${profitLossPercentage >= 0 ? '+' : ''}${profitLossPercentage.toFixed(2)}%
         `;
         
-        if (!confirm(message + '\n\n確定要執行賣出嗎？')) {
-            return;
-        }
+        mdConfirm(message + '\n\n確定要執行賣出嗎？', async (confirmed) => {
+            if (confirmed) {
+                // 執行賣出邏輯
+                await executeCryptoSell(symbol, type, date, amount, price, fee);
+            }
+        });
+        return; // 防止繼續執行下面的程式碼
     }
+    
+    // 執行買入邏輯
+    await executeCryptoTrade(symbol, type, date, amount, price, fee);
+}
 
+async function executeCryptoSell(symbol, type, date, amount, price, fee) {
+    const total = (amount * price) - fee;
+    
+    // 建立新的紀錄物件
+    const newRecord = {
+        id: Date.now(),
+        symbol,
+        type,
+        date,
+        amount,
+        price,
+        fee,
+        total
+    };
+
+    // 將新紀錄加入到全域狀態陣列
+    cryptoRecords.push(newRecord);
+
+    // 更新 UI 並儲存資料
+    updateAllTablesAndSummary();
+    updateCryptoHoldingsTable();
+    await savePortfolioData();
+
+    // 清空表單
+    document.getElementById('cryptoForm').reset();
+    
+    // 添加成功動畫
+    if (typeof window.addButtonSuccessAnimation === 'function') {
+        const button = document.querySelector('.crypto-section .filled-button');
+        const card = button?.closest('.card');
+        if (button) window.addButtonSuccessAnimation(button);
+        if (card) window.triggerSuccessAnimation(card);
+    }
+}
+
+async function executeCryptoTrade(symbol, type, date, amount, price, fee) {
     const total = (amount * price) + (type === '買入' ? fee : -fee);
 
     cryptoRecords.push({ id: Date.now(), symbol, type, date, amount, price, fee, total });
     updateAllTablesAndSummary();
     updateCryptoHoldingsTable();
     updateCryptoSymbolDatalist(); // 更新下拉選單
-    saveToLocalStorage();
+    await savePortfolioData();
 
     // 添加成功動畫
     if (typeof window.addButtonSuccessAnimation === 'function') {
@@ -287,14 +357,16 @@ export function updateCryptoHoldingsTable() {
  * @param {number} id - 要刪除的紀錄 ID。
  */
 export function deleteCryptoRecord(id) {
-    if (confirm('確定要刪除這筆紀錄嗎？')) {
-        const index = cryptoRecords.findIndex(r => r.id === id);
-        if (index > -1) {
-            cryptoRecords.splice(index, 1);
-            updateAllTablesAndSummary();
-            updateCryptoHoldingsTable();
-            updateCryptoSymbolDatalist(); // 更新下拉選單
-            saveToLocalStorage();
+    mdConfirm('確定要刪除這筆紀錄嗎？', async (confirmed) => {
+        if (confirmed) {
+            const index = cryptoRecords.findIndex(r => r.id === id);
+            if (index > -1) {
+                cryptoRecords.splice(index, 1);
+                updateAllTablesAndSummary();
+                updateCryptoHoldingsTable();
+                updateCryptoSymbolDatalist(); // 更新下拉選單
+                await savePortfolioData();
+            }
         }
-    }
+    });
 } 

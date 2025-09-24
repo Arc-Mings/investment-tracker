@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src https://fonts.gstatic.com; connect-src 'self' https://query1.finance.yahoo.com;">
     <title>個人投資紀錄表</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -56,9 +57,78 @@
         }
     </style>
     
+    <script>
+        // 臨時函數定義（保護式）：僅在正式函式尚未註冊時才提供備援，避免覆蓋
+        window.addStockBuyRecord = window.addStockBuyRecord || function() {
+            alert('股票買進功能正在修復中...');
+        };
+        
+        window.addStockSellRecord = window.addStockSellRecord || function() {
+            alert('股票賣出功能正在修復中...');
+        };
+        
+        window.addFundRecord = window.addFundRecord || function() {
+            alert('基金記錄功能正在修復中...');
+        };
+        
+        window.addCryptoRecord = window.addCryptoRecord || function() {
+            alert('加密貨幣功能正在修復中...');
+        };
+        
+        window.addPropertyRecord = window.addPropertyRecord || function() {
+            alert('房地產功能正在修復中...');
+        };
+        
+        window.addPaymentRecord = window.addPaymentRecord || function() {
+            alert('繳款記錄功能正在修復中...');
+        };
+        
+        window.showTab = window.showTab || function(tabName) {
+            // 移除所有 active 類別
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.navigation-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 設置新的 active
+            const targetContent = document.getElementById(tabName);
+            const targetTab = document.querySelector(`[data-tab="${tabName}"]`);
+            
+            if (targetContent) targetContent.classList.add('active');
+            if (targetTab) targetTab.classList.add('active');
+            
+            console.log('切換到標籤:', tabName);
+        };
+        
+        window.updateBuyStockForm = window.updateBuyStockForm || function() {
+            console.log('更新買進表單');
+        };
+        
+        window.updateSellStockForm = window.updateSellStockForm || function() {
+            console.log('更新賣出表單');
+        };
+        
+        console.log('✅ 臨時函數已載入，頁面可以基本運作');
+        </script>
+
     <!-- Electron 應用程式：資料庫服務已整合到後端 -->
-    <!-- Main JavaScript -->
-    <script type="module" src="js/main.js"></script>
+    <!-- 統一模組載入 -->
+    <script type="module">
+        // 優先載入事件監聽器，確保 onclick 函數可用
+        import('./js/core/events.js').then(module => {
+            module.initializeEventListeners();
+            console.log('✅ 事件監聽器已初始化');
+        }).catch(error => {
+            console.error('❌ 事件監聽器載入失敗:', error);
+        });
+        
+        // 載入主應用邏輯
+        import('./js/main.js').catch(error => {
+            console.error('❌ 主應用載入失敗:', error);
+        });
+    </script>
     <script src="js/ui/customSelect.js"></script>
     
     <!-- 全局自定義對話框 -->
@@ -165,6 +235,53 @@
                 cancelText: '取消'
             });
         };
+        
+        // MD3 統一對話框系統 - 基於現有的 showCustomDialog
+        window.mdAlert = window.mdAlert || function(message, type = 'info', title = null) {
+            const iconMap = {
+                'error': 'error',
+                'warning': 'warning',
+                'success': 'check_circle',
+                'info': 'info'
+            };
+            
+            const titleMap = {
+                'error': '訊息',
+                'warning': '警告', 
+                'success': '成功',
+                'info': '訊息'
+            };
+            
+            return window.showCustomDialog({
+                icon: iconMap[type] || 'info',
+                title: title || titleMap[type] || '訊息',
+                message: message,
+                confirmText: '確定',
+                showCancel: false
+            });
+        };
+
+        window.mdConfirm = window.mdConfirm || function(message, callback, title = '確認') {
+            return window.showCustomDialog({
+                icon: 'help_outline',
+                title: title,
+                message: message,
+                confirmText: '確定',
+                cancelText: '取消'
+            }).then(result => {
+                if (callback) callback(result);
+                return result;
+            });
+        };
+
+        window.mdPrompt = window.mdPrompt || function(message, callback, defaultValue = '', title = '輸入') {
+            const input = prompt(message, defaultValue);
+            if (callback) callback(input);
+            return input;
+        };
+        
+        // 確保對話框函數在模組載入前就可用
+        console.log('✅ MD3 對話框備用函數已初始化');
     </script>
 </head>
 <body>
@@ -172,9 +289,9 @@
         <header class="app-bar">
             <h1>個人投資紀錄表</h1>
             <div class="app-bar-actions">
-                <div class="database-status" id="databaseStatus" title="資料庫連線狀態">
+                <div class="database-status connecting" id="databaseStatus" title="資料庫連線狀態">
                     <span class="material-icons">storage</span>
-                    <span class="status-text">連線中...</span>
+                    <span class="status-text">初始化中...</span>
                 </div>
             </div>
         </header>
@@ -194,7 +311,7 @@
             </button>
             <button class="navigation-tab" data-tab="property">
                 <span class="material-icons">home</span>
-                <span>預售屋房貸</span>
+                <span>房屋貸款</span>
             </button>
             <button class="navigation-tab" data-tab="portfolio">
                 <span class="material-icons">pie_chart</span>
@@ -390,6 +507,30 @@
                         <tbody id="stockTableBody"></tbody>
                     </table>
                 </section>
+
+                <!-- API 控制面板（安全小改，不影響既有功能） -->
+                <section class="card neutral-theme" style="display: none;">
+                    <h3 class="card-header">
+                        <span class="emoji">🛠️</span>
+                        股票 API 控制面板
+                    </h3>
+                    <p class="card-subtitle">僅影響名稱查詢，不影響交易資料</p>
+                    <div class="form-row">
+                        <div class="text-field">
+                            <input type="text" id="apiTestSymbol" placeholder="例如：2330 或 AAPL" value="2330">
+                            <label>測試代號</label>
+                        </div>
+                        <div class="button-group">
+                            <button type="button" class="outlined-button" id="btnApiTest">測試 API</button>
+                            <button type="button" class="outlined-button" id="btnCacheStats">刷新統計</button>
+                            <button type="button" class="error-button" id="btnClearCache">清除快取</button>
+                        </div>
+                    </div>
+                    <div style="margin-top:12px; color: var(--md-sys-color-on-surface-variant); font-size: var(--md-sys-typescale-body-medium-font-size);">
+                        <div>快取項目數：<span id="cacheCount">0</span></div>
+                        <div>最近查詢結果：<span id="apiLastResult">無</span></div>
+                    </div>
+                </section>
             </div>
 
             <!-- 基金定投 -->
@@ -504,7 +645,7 @@
                     <div class="card-status-indicator"></div>
                     <h3 class="card-header">
                         <span class="emoji">₿</span>
-                        加密貨幣交易
+                        現貨交易
                     </h3>
                     <p class="card-subtitle">通往羅馬的門票</p>
                     
@@ -520,9 +661,9 @@
                                     <option value="SOL">SOL (Solana)</option>
                                     <option value="DOGE">DOGE (Dogecoin)</option>
                                     <option value="SHIB">SHIB (Shiba Inu)</option>
-                                    <option value="DUST">DUST</option>
-                                    <option value="USDC">USDC</option>
-                                    <option value="OKB">OKB</option>
+                                    <option value="USDT">USDT (Tether)</option>
+                                    <option value="USDC">USDC (USD Coin)</option>
+                                    <option value="OKB">OKB (OKX Token)</option>
                                 </select>
                                 <label>幣種</label>
                             </div>
@@ -571,7 +712,7 @@
                 <section class="card neutral-theme">
                     <h3 class="card-header">
                         <span class="emoji">💎</span>
-                        加密貨幣持倉
+                        現貨持倉
                     </h3>
                     <p class="card-subtitle">您的數位資產組合</p>
                     <table class="data-table">
@@ -590,7 +731,7 @@
                 <section class="card neutral-theme">
                     <h3 class="card-header">
                         <span class="emoji">🔗</span>
-                        加密貨幣交易紀錄
+                        現貨交易紀錄
                     </h3>
                     <p class="card-subtitle">您的區塊鏈投資軌跡</p>
                     <table class="data-table">
@@ -611,13 +752,13 @@
                 </section>
             </div>
 
-            <!-- 預售屋房貸 -->
+            <!-- 房屋貸款 -->
             <div id="property" class="tab-content">
                 <section class="card growth-theme">
                     <div class="card-status-indicator"></div>
                     <h3 class="card-header">
                         <span class="emoji">🏠</span>
-                        預售屋房貸資訊
+                        房屋貸款資訊
                     </h3>
                     <p class="card-subtitle">為未來的家園奠定穩固基礎</p>
                     
@@ -970,12 +1111,12 @@
         </main>
     </div>
 
-    <script type="module" src="js/core/main.js"></script>
+    <!-- 已移除重複的模組載入，統一使用頁面頂部的動態載入 -->
     
     <!-- M3 Expressive 進階功能 JavaScript -->
     <script>
-        // 全域頁籤切換函數
-        window.showTab = function(tabName) {
+        // 頁籤切換備用函數（如果模組載入失敗時使用）
+        window.showTab = window.showTab || function(tabName) {
             if (!tabName) return;
 
             console.log(`Switching to tab: ${tabName}`);
@@ -1139,6 +1280,54 @@
                 card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
                 observer.observe(card);
             });
+        });
+    </script>
+
+    <!-- 面板保底綁定（若主程式未載入也可運作） -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const lastResult = document.getElementById('apiLastResult');
+            const cacheCount = document.getElementById('cacheCount');
+            const input = document.getElementById('apiTestSymbol');
+            const btnTest = document.getElementById('btnApiTest');
+            const btnStats = document.getElementById('btnCacheStats');
+            const btnClear = document.getElementById('btnClearCache');
+
+            const bind = (el, handler) => { if (el) el.addEventListener('click', handler); };
+
+            const refreshStats = async () => {
+                try {
+                    const mod = await import('./js/api/stockApiService.js');
+                    const stats = mod.getCacheStats();
+                    if (cacheCount) cacheCount.textContent = String(stats.total);
+                } catch (e) { console.warn('API 面板統計失敗', e); }
+            };
+
+            bind(btnTest, async () => {
+                try {
+                    const code = (input?.value || '').trim();
+                    if (!code) return;
+                    const market = /[a-zA-Z]/.test(code) ? '美股' : '台股';
+                    const mod = await import('./js/api/stockApiService.js');
+                    const name = await mod.queryStockName(market, code);
+                    if (lastResult) lastResult.textContent = name ? `${code} ${name}` : '(無結果)';
+                    await refreshStats();
+                } catch (e) { console.warn('API 面板測試失敗', e); }
+            });
+
+            bind(btnStats, refreshStats);
+
+            bind(btnClear, async () => {
+                try {
+                    const mod = await import('./js/api/stockApiService.js');
+                    mod.clearStockNameCache();
+                    await refreshStats();
+                    if (lastResult) lastResult.textContent = '無';
+                } catch (e) { console.warn('API 面板清除失敗', e); }
+            });
+
+            // 首次刷新
+            refreshStats();
         });
     </script>
 </body>

@@ -10,10 +10,46 @@
  */
 
 import { stockRecords } from '../core/state.js';
-import { saveToLocalStorage } from '../data/storage.js';
+import { storeManager } from '../data/storeManager.js';
+import { validateData } from '../data/dataStructure.js';
 import { updateAllTablesAndSummary } from './summary.js';
 import { calculateStockHoldings, calculateProfitLoss } from './portfolio.js';
-import { queryStockName } from '../services/stockApiService.js';
+import { queryStockName } from '../api/stockApiService.js';
+
+/**
+ * 保存投資組合資料到 electron-store
+ */
+async function savePortfolioData() {
+    try {
+        // 從全局狀態獲取所有資料
+        const portfolioData = {
+            stocks: stockRecords,
+            crypto: window.cryptoRecords || [],
+            funds: window.fundRecords || [],
+            property: window.propertyRecords || [],
+            payments: window.paymentRecords || []
+        };
+        
+        // 更新最後儲存時間
+        if (typeof window.updateLastSaveTime === 'function') {
+            window.updateLastSaveTime();
+        }
+        
+        // 驗證資料格式
+        const validatedData = validateData(portfolioData);
+        
+        // 保存到 electron-store
+        await storeManager.save(validatedData);
+        console.log('✅ 股票資料保存成功');
+        
+    } catch (error) {
+        console.error('❌ 股票資料保存失敗:', error);
+        // 不拋出錯誤，避免影響用戶操作
+        if (typeof window.mdAlert === 'function') {
+            window.mdAlert('資料保存失敗，請稍後重試');
+        }
+    }
+}
 
 // 台股代碼對照表
 const taiwanStocks = {
@@ -182,18 +218,15 @@ async function getStockDisplayNameAsync(market, code, useApi = true) {
         return `${code} ${companyName}`;
     }
     
-    // 2. 如果啟用API且靜態清單沒有，嘗試API查詢
+    // 2. 若允許使用 API，向 Yahoo 查詢
     if (useApi) {
         try {
-            const apiName = await queryStockName(market, code);
-            if (apiName) {
-                return `${code} ${apiName}`;
-            }
-        } catch (error) {
-            console.warn(`API查詢股票名稱失敗 (${market}:${code}):`, error.message);
+            const name = await queryStockName(market, code);
+            if (name) return `${code} ${name}`;
+        } catch (err) {
+            console.warn('Yahoo Finance API 查詢失敗，改用回退：', err);
         }
     }
-    
     // 3. 如果都沒有結果，只返回代碼
     return code;
 }
@@ -290,7 +323,40 @@ export function initializeStockPage() {
     
     [buyCodeInput, sellCodeInput].forEach(input => {
         if (input) {
-            // 美股代號自動轉大寫
+            const lookupAndFillName = async (target) => {
+                if (target.dataset.busy === '1') return; // 防重入
+                const code = target.value.trim();
+                if (!code) return;
+                const market = target.closest('.card').querySelector('select').value;
+                const originalValue = target.value;
+                target.value = `${code} (查詢中...)`;
+                target.disabled = true;
+                target.dataset.busy = '1';
+                try {
+                    console.debug('[Stocks] lookupAndFillName', { market, code });
+                    const result = await Promise.race([
+                        getStockDisplayNameAsync(market, code, true).catch(() => null),
+                        new Promise(resolve => setTimeout(() => resolve('__TIMEOUT__'), 3000))
+                    ]);
+                    const displayName = (!result || result === '__TIMEOUT__')
+                        ? getStockDisplayName(market, code)
+                        : result;
+                    console.debug('[Stocks] displayName', displayName);
+                    target.value = displayName;
+                } catch (error) {
+                    console.warn('股票名稱查詢失敗:', error);
+                    const fallbackName = getStockDisplayName(market, code);
+                    console.debug('[Stocks] fallbackName', fallbackName);
+                    target.value = fallbackName;
+                } finally {
+                    target.disabled = false;
+                    target.dataset.busy = '0';
+                }
+            };
+
+            let inputTimeout = null;
+            
+            // 美股代號自動轉大寫 + 即時查詢節流
             input.addEventListener('input', function(e) {
                 const market = e.target.closest('.card').querySelector('select').value;
                 if (market === '美股') {
@@ -303,31 +369,28 @@ export function initializeStockPage() {
                         e.target.setSelectionRange(cursorPosition, cursorPosition);
                     }
                 }
+                
+                // 清除之前的計時器
+                if (inputTimeout) {
+                    clearTimeout(inputTimeout);
+                }
+                
+                // 設置新的計時器，300ms 後執行查詢
+                const code = e.target.value.trim();
+                if (code && code.length >= 2) { // 至少2個字元才查詢
+                    inputTimeout = setTimeout(async () => {
+                        await lookupAndFillName(e.target);
+                    }, 300);
+                }
             });
             
-            // 當失焦時自動顯示公司名稱
-            input.addEventListener('blur', async function(e) {
-                const code = e.target.value.trim();
-                if (code) {
-                    const market = e.target.closest('.card').querySelector('select').value;
-                    
-                    // 顯示載入狀態
-                    const originalValue = e.target.value;
-                    e.target.value = `${code} (查詢中...)`;
-                    e.target.disabled = true;
-                    
-                    try {
-                        // 使用異步版本獲取股票名稱
-                        const displayName = await getStockDisplayNameAsync(market, code, true);
-                        e.target.value = displayName;
-                    } catch (error) {
-                        console.warn('股票名稱查詢失敗:', error);
-                        // 失敗時使用同步版本 (靜態清單)
-                        const fallbackName = getStockDisplayName(market, code);
-                        e.target.value = fallbackName;
-                    } finally {
-                        e.target.disabled = false;
-                    }
+            // 當失焦或變更時自動顯示公司名稱
+            input.addEventListener('blur', async function(e) { await lookupAndFillName(e.target); });
+            input.addEventListener('change', async function(e) { await lookupAndFillName(e.target); });
+            // 按下 Enter 或 Tab 前也觸發查詢
+            input.addEventListener('keydown', async function(e) {
+                if (e.key === 'Enter' || e.key === 'Tab') {
+                    await lookupAndFillName(e.target);
                 }
             });
             
@@ -339,6 +402,9 @@ export function initializeStockPage() {
                     e.target.value = code;
                 }
             });
+
+            // 標記此輸入已完成直接綁定（供保底委派參考）
+            input.dataset.lookupBound = '1';
         }
     });
 }
@@ -408,7 +474,7 @@ export function updateSellStockForm() {
 /**
  * 新增股票買進紀錄
  */
-export function addStockBuyRecord() {
+export async function addStockBuyRecord() {
     // 從 DOM 讀取表單數值
     const market = document.getElementById('buyStockMarket')?.value;
     const assetType = document.getElementById('buyStockAssetType')?.value;
@@ -424,40 +490,35 @@ export function addStockBuyRecord() {
 
     // 必填欄位驗證
     if (!market) {
-        alert('請選擇市場');
+        mdAlert('請選擇市場', 'error');
         return;
     }
     if (!assetType) {
-        alert('請選擇資產類型');
+        mdAlert('請選擇資產類型', 'error');
         return;
     }
     if (!code) {
-        alert('請輸入股票代號');
+        mdAlert('請輸入股票代號', 'error');
         document.getElementById('buyStockCode').focus();
         return;
     }
-    if (!name) {
-        alert('請輸入公司名稱');
-        document.getElementById('buyStockName').focus();
-        return;
-    }
     if (!date) {
-        alert('請選擇交易日期');
+        mdAlert('請選擇交易日期', 'error');
         document.getElementById('buyStockDate').focus();
         return;
     }
     if (!sharesStr) {
-        alert('請輸入股數');
+        mdAlert('請輸入股數', 'error');
         document.getElementById('buyStockShares').focus();
         return;
     }
     if (!priceStr) {
-        alert('請輸入價格');
+        mdAlert('請輸入價格', 'error');
         document.getElementById('buyStockPrice').focus();
         return;
     }
     if (!feeStr) {
-        alert('請輸入手續費（可填0）');
+        mdAlert('請輸入手續費（可填0）', 'error');
         document.getElementById('buyStockFee').focus();
         return;
     }
@@ -468,17 +529,17 @@ export function addStockBuyRecord() {
 
     // 數值驗證
     if (isNaN(shares) || shares <= 0) {
-        alert('股數必須是正數');
+        mdAlert('股數必須是正數', 'error');
         document.getElementById('buyStockShares').focus();
         return;
     }
     if (isNaN(price) || price <= 0) {
-        alert('價格必須是正數');
+        mdAlert('價格必須是正數', 'error');
         document.getElementById('buyStockPrice').focus();
         return;
     }
     if (isNaN(fee) || fee < 0) {
-        alert('手續費不能為負數');
+        mdAlert('手續費不能為負數', 'error');
         document.getElementById('buyStockFee').focus();
         return;
     }
@@ -501,7 +562,7 @@ export function addStockBuyRecord() {
     // 更新 UI 並儲存資料
     updateAllTablesAndSummary();
     updateStockHoldingsTable();
-    saveToLocalStorage();
+    await savePortfolioData();
 
     // 清空部分表單以便下次輸入
     document.getElementById('buyStockCode').value = '';
@@ -517,13 +578,13 @@ export function addStockBuyRecord() {
         if (card) window.triggerSuccessAnimation(card);
     }
     
-    alert('買進紀錄新增成功！');
+    mdAlert('買進紀錄新增成功！', 'success');
 }
 
 /**
  * 新增股票賣出紀錄
  */
-export function addStockSellRecord() {
+export async function addStockSellRecord() {
     // 從 DOM 讀取表單數值
     const market = document.getElementById('sellStockMarket')?.value;
     const assetType = document.getElementById('sellStockAssetType')?.value;
@@ -540,45 +601,40 @@ export function addStockSellRecord() {
 
     // 必填欄位驗證
     if (!market) {
-        alert('請選擇市場');
+        mdAlert('請選擇市場', 'error');
         return;
     }
     if (!assetType) {
-        alert('請選擇資產類型');
+        mdAlert('請選擇資產類型', 'error');
         return;
     }
     if (!code) {
-        alert('請輸入股票代號');
+        mdAlert('請輸入股票代號', 'error');
         document.getElementById('sellStockCode').focus();
         return;
     }
-    if (!name) {
-        alert('請輸入公司名稱');
-        document.getElementById('sellStockName').focus();
-        return;
-    }
     if (!date) {
-        alert('請選擇交易日期');
+        mdAlert('請選擇交易日期', 'error');
         document.getElementById('sellStockDate').focus();
         return;
     }
     if (!sharesStr) {
-        alert('請輸入股數');
+        mdAlert('請輸入股數', 'error');
         document.getElementById('sellStockShares').focus();
         return;
     }
     if (!priceStr) {
-        alert('請輸入價格');
+        mdAlert('請輸入價格', 'error');
         document.getElementById('sellStockPrice').focus();
         return;
     }
     if (!feeStr) {
-        alert('請輸入手續費（可填0）');
+        mdAlert('請輸入手續費（可填0）', 'error');
         document.getElementById('sellStockFee').focus();
         return;
     }
     if (market === '台股' && !taxStr) {
-        alert('台股需要輸入證交稅（可填0）');
+        mdAlert('台股需要輸入證交稅（可填0）', 'error');
         document.getElementById('sellStockTax').focus();
         return;
     }
@@ -590,22 +646,22 @@ export function addStockSellRecord() {
 
     // 數值驗證
     if (isNaN(shares) || shares <= 0) {
-        alert('股數必須是正數');
+        mdAlert('股數必須是正數', 'error');
         document.getElementById('sellStockShares').focus();
         return;
     }
     if (isNaN(price) || price <= 0) {
-        alert('價格必須是正數');
+        mdAlert('價格必須是正數', 'error');
         document.getElementById('sellStockPrice').focus();
         return;
     }
     if (isNaN(fee) || fee < 0) {
-        alert('手續費不能為負數');
+        mdAlert('手續費不能為負數', 'error');
         document.getElementById('sellStockFee').focus();
         return;
     }
     if (isNaN(tax) || tax < 0) {
-        alert('證交稅不能為負數');
+        mdAlert('證交稅不能為負數', 'error');
         document.getElementById('sellStockTax').focus();
         return;
     }
@@ -615,7 +671,7 @@ export function addStockSellRecord() {
     const holding = holdings.find(h => h.market === market && h.code === code);
     
     if (!holding || holding.totalShares < shares) {
-        alert(`持股不足！目前持有 ${holding ? holding.totalShares : 0} 股`);
+        mdAlert(`持股不足！目前持有 ${holding ? holding.totalShares : 0} 股`, 'error');
         return;
     }
     
@@ -635,9 +691,14 @@ ${market === '台股' ? `• 證交稅：${tax.toLocaleString()} TWD` : ''}
 • 報酬率：${profitLossPercentage >= 0 ? '+' : ''}${profitLossPercentage.toFixed(2)}%
     `;
     
-    if (!confirm(message + '\n\n確定要執行賣出嗎？')) {
-        return;
-    }
+    mdConfirm(message + '\n\n確定要執行賣出嗎？', async (confirmed) => {
+        if (confirmed) {
+            await executeSellStock(market, assetType, code, name, date, shares, price, fee, tax);
+        }
+    });
+}
+
+async function executeSellStock(market, assetType, code, name, date, shares, price, fee, tax) {
 
     const total = (shares * price) - fee - tax;
 
@@ -657,7 +718,7 @@ ${market === '台股' ? `• 證交稅：${tax.toLocaleString()} TWD` : ''}
     // 更新 UI 並儲存資料
     updateAllTablesAndSummary();
     updateStockHoldingsTable();
-    saveToLocalStorage();
+    await savePortfolioData();
 
     // 清空部分表單以便下次輸入
     document.getElementById('sellStockCode').value = '';
@@ -674,7 +735,7 @@ ${market === '台股' ? `• 證交稅：${tax.toLocaleString()} TWD` : ''}
         if (card) window.triggerSuccessAnimation(card);
     }
     
-    alert('賣出紀錄新增成功！');
+    mdAlert('賣出紀錄新增成功！', 'success');
 }
 
 /**
@@ -756,51 +817,119 @@ export function updateStockHoldingsTable() {
  * @param {number} id - 要刪除的紀錄 ID。
  */
 export function deleteStockRecord(id) {
-    if (confirm('確定要刪除這筆紀錄嗎？')) {
-        const index = stockRecords.findIndex(r => r.id === id);
-        if (index > -1) {
-            stockRecords.splice(index, 1);
-            updateAllTablesAndSummary();
-            updateStockHoldingsTable();
-            saveToLocalStorage();
+    mdConfirm('確定要刪除這筆紀錄嗎？', async (confirmed) => {
+        if (confirmed) {
+            const index = stockRecords.findIndex(r => r.id === id);
+            if (index > -1) {
+                stockRecords.splice(index, 1);
+                updateAllTablesAndSummary();
+                updateStockHoldingsTable();
+                await savePortfolioData();
+            }
         }
-    }
+    });
 }
 
 /**
  * 預載熱門股票名稱到快取
  */
 export async function preloadPopularStocks() {
-    const popularStocks = [
-        // 台股熱門股票
-        { market: '台股', code: '2330' }, // 台積電
-        { market: '台股', code: '2317' }, // 鴻海
-        { market: '台股', code: '2454' }, // 聯發科
-        { market: '台股', code: '0050' }, // 台灣50
-        { market: '台股', code: '0056' }, // 高股息
-        
-        // 美股熱門股票
-        { market: '美股', code: 'AAPL' }, // Apple
-        { market: '美股', code: 'MSFT' }, // Microsoft
-        { market: '美股', code: 'GOOGL' }, // Google
-        { market: '美股', code: 'TSLA' }, // Tesla
-        { market: '美股', code: 'SPY' }   // S&P 500 ETF
-    ];
-    
-    console.log('開始預載熱門股票名稱...');
-    
-    for (const { market, code } of popularStocks) {
-        try {
-            await getStockDisplayNameAsync(market, code, true);
-        } catch (error) {
-            console.warn(`預載 ${market}:${code} 失敗:`, error.message);
-        }
+    try {
+        const popularTw = ['2330','2317','2454','0050','0056'];
+        const popularUs = ['AAPL','MSFT','GOOGL','TSLA','SPY'];
+        // 基本節流已在 queryStockName 內部處理
+        for (const code of popularTw) { await queryStockName('台股', code); }
+        for (const code of popularUs) { await queryStockName('美股', code); }
+        console.log('✅ 熱門股票名稱已預載進快取');
+    } catch (e) {
+        console.warn('⚠️ 熱門股票預載失敗', e);
     }
-    
-    console.log('熱門股票名稱預載完成');
 }
 
 /**
  * 導出新的異步函數供其他模組使用
  */
 export { getStockDisplayNameAsync }; 
+
+// 全域保底查詢函式（與初始化內部邏輯一致）
+async function lookupAndFillNameGlobal(target) {
+    if (!target || !(target instanceof HTMLElement)) return;
+    if (target.dataset.busy === '1') return; // 防重入
+    const code = (target.value || '').trim();
+    if (!code) return;
+    const marketSelect = target.closest('.card')?.querySelector('select');
+    const market = marketSelect ? marketSelect.value : '台股';
+    const originalValue = target.value;
+    target.value = `${code} (查詢中...)`;
+    target.disabled = true;
+    target.dataset.busy = '1';
+    try {
+        const result = await Promise.race([
+            getStockDisplayNameAsync(market, code, true).catch(() => null),
+            new Promise(resolve => setTimeout(() => resolve('__TIMEOUT__'), 3000))
+        ]);
+        if (!result || result === '__TIMEOUT__') {
+            const fallbackName = getStockDisplayName(market, code);
+            target.value = fallbackName;
+        } else {
+            target.value = result;
+        }
+    } catch (error) {
+        const fallbackName = getStockDisplayName(market, code);
+        target.value = fallbackName;
+    } finally {
+        target.disabled = false;
+        target.dataset.busy = '0';
+    }
+}
+
+// 事件委派保底（避免因任何初始化時序問題導致未綁定）
+if (!window.__stockInputDelegationBound) {
+    window.__stockInputDelegationBound = true;
+    const debounceMap = new WeakMap();
+
+    document.addEventListener('input', (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        if (target.id !== 'buyStockCode' && target.id !== 'sellStockCode') return;
+        if (target.dataset.lookupBound === '1') return; // 已有直接綁定則不重複處理
+        if (target.disabled) return;
+
+        const market = target.closest('.card')?.querySelector('select')?.value;
+        if (market === '美股') {
+            const cursor = target.selectionStart;
+            const upper = target.value.toUpperCase();
+            if (upper !== target.value) {
+                target.value = upper;
+                target.setSelectionRange(cursor, cursor);
+            }
+        }
+
+        const code = target.value.trim();
+        clearTimeout(debounceMap.get(target));
+        if (code && code.length >= 2) {
+            const t = setTimeout(() => lookupAndFillNameGlobal(target), 300);
+            debounceMap.set(target, t);
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        if (target.id !== 'buyStockCode' && target.id !== 'sellStockCode') return;
+        if (target.dataset.lookupBound === '1') return;
+        if (target.disabled) return;
+        if (e.key === 'Enter' || e.key === 'Tab') {
+            lookupAndFillNameGlobal(target);
+        }
+    });
+
+    document.addEventListener('blur', (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        if (target.id !== 'buyStockCode' && target.id !== 'sellStockCode') return;
+        if (target.dataset.lookupBound === '1') return;
+        if (target.disabled) return;
+        lookupAndFillNameGlobal(target);
+    }, true);
+} 

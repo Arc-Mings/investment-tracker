@@ -20,4 +20,30 @@ export let cryptoRecords = [];
 export let propertyRecords = [];
 
 // 房貸繳款紀錄陣列
-export let paymentRecords = []; 
+export let paymentRecords = [];
+
+/**
+ * 更新所有狀態變數
+ * @param {Object} data - 新的資料
+ */
+export function updateAllRecords(data) {
+    stockRecords.length = 0;
+    fundRecords.length = 0;
+    cryptoRecords.length = 0;
+    propertyRecords.length = 0;
+    paymentRecords.length = 0;
+    
+    if (data.stocks) stockRecords.push(...data.stocks);
+    if (data.funds) fundRecords.push(...data.funds);
+    if (data.crypto) cryptoRecords.push(...data.crypto);
+    if (data.property) propertyRecords.push(...data.property);
+    if (data.payments) paymentRecords.push(...data.payments);
+    
+    console.log('✅ 狀態變數已更新:', {
+        stocks: stockRecords.length,
+        funds: fundRecords.length,
+        crypto: cryptoRecords.length,
+        property: propertyRecords.length,
+        payments: paymentRecords.length
+    });
+} 

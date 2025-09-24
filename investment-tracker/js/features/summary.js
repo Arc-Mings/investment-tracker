@@ -4,7 +4,8 @@
  */
 
 import { stockRecords, fundRecords, cryptoRecords, propertyRecords, paymentRecords } from '../core/state.js';
-import { saveToLocalStorage, exportData as exportDataFromStorage, importData as importDataFromStorage, clearAllData as clearAllDataFromStorage } from '../data/storage.js';
+import { storeManager } from '../data/storeManager.js';
+import { validateData } from '../data/dataStructure.js';
 import { updateStockTable, updateStockHoldingsTable } from './stocks.js';
 import { updateFundTable, updateFundHoldingsTable } from './funds.js';
 import { updateCryptoTable, updateCryptoHoldingsTable } from './crypto.js';
@@ -72,22 +73,56 @@ export function updateSummary() {
 /**
  * 匯出所有資料為 JSON 檔案。
  */
-export function exportData() {
-    exportDataFromStorage();
+export async function exportData() {
+    try {
+        await storeManager.exportData();
+    } catch (error) {
+        console.error('❌ 資料匯出失敗:', error);
+        if (typeof window.mdAlert === 'function') {
+            window.mdAlert('資料匯出失敗，請稍後重試');
+        }
+    }
 }
 
 /**
  * 從 JSON 檔案匯入資料。
  */
-export function importData(event) {
-    importDataFromStorage(event);
+export async function importData(event) {
+    try {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const text = await file.text();
+        const data = JSON.parse(text);
+        const validatedData = validateData(data);
+        
+        await storeManager.importData(validatedData);
+        
+        // 重新載入頁面以更新所有介面
+        location.reload();
+    } catch (error) {
+        console.error('❌ 資料匯入失敗:', error);
+        if (typeof window.mdAlert === 'function') {
+            window.mdAlert('資料匯入失敗，請檢查檔案格式');
+        }
+    }
 }
 
 /**
  * 清空所有資料。
  */
-export function clearAllData() {
-    clearAllDataFromStorage();
+export async function clearAllData() {
+    try {
+        await storeManager.clearAll();
+        
+        // 重新載入頁面以更新所有介面
+        location.reload();
+    } catch (error) {
+        console.error('❌ 清空資料失敗:', error);
+        if (typeof window.mdAlert === 'function') {
+            window.mdAlert('清空資料失敗，請稍後重試');
+        }
+    }
 }
 
 /**

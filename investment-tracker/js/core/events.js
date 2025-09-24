@@ -11,7 +11,7 @@ import { addFundRecord, deleteFundRecord, updateFundHoldingsTable } from '../fea
 import { addCryptoRecord, deleteCryptoRecord, updateCryptoHoldingsTable, initializeCryptoPage } from '../features/crypto.js';
 import { addPropertyRecord, deletePropertyRecord, addPaymentRecord, deletePaymentRecord } from '../features/property.js';
 import { updateSummary, exportData, importData, clearAllData } from '../features/summary.js';
-import { showTab } from '../ui/uiManager.js';
+import { showTab, updateLastSaveTime } from '../ui/uiManager.js';
 
 /**
  * 初始化所有 on-click 事件所需的函式，將它們掛載到 window。
@@ -21,8 +21,9 @@ export function initializeEventListeners() {
     
     // UI 管理
     window.showTab = showTab;
+    window.updateLastSaveTime = updateLastSaveTime;
     
-    // 股票
+    // 股票 - 直接賦值，不要包裝
     window.addStockBuyRecord = addStockBuyRecord;
     window.addStockSellRecord = addStockSellRecord;
     window.deleteStockRecord = deleteStockRecord;
@@ -30,23 +31,23 @@ export function initializeEventListeners() {
     window.updateBuyStockForm = updateBuyStockForm;
     window.updateSellStockForm = updateSellStockForm;
 
-    // 基金
+    // 基金 - 直接賦值，不要包裝
     window.addFundRecord = addFundRecord;
     window.deleteFundRecord = deleteFundRecord;
     window.updateFundHoldingsTable = updateFundHoldingsTable;
 
-    // 加密貨幣
+    // 加密貨幣 - 直接賦值，不要包裝
     window.addCryptoRecord = addCryptoRecord;
     window.deleteCryptoRecord = deleteCryptoRecord;
     window.updateCryptoHoldingsTable = updateCryptoHoldingsTable;
 
-    // 房產
+    // 房產 - 直接賦值，不要包裝
     window.addPropertyRecord = addPropertyRecord;
-    window.deletePropertyRecord = deletePropertyRecord;
     window.addPaymentRecord = addPaymentRecord;
+    window.deletePropertyRecord = deletePropertyRecord;
     window.deletePaymentRecord = deletePaymentRecord;
 
-    // 總覽與資料管理
+    // 總覽與資料管理 - 直接賦值，不要包裝
     window.updateSummary = updateSummary;
     window.exportData = exportData;
     window.importData = importData;
@@ -57,4 +58,6 @@ export function initializeEventListeners() {
     
     // 初始化加密貨幣頁面的特殊輸入處理
     initializeCryptoPage();
-} 
+    
+    console.log("✅ 全域事件監聽器初始化完成");
+}
