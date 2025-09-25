@@ -128,6 +128,11 @@
         import('./js/main.js').catch(error => {
             console.error('❌ 主應用載入失敗:', error);
         });
+        
+        // 載入加密貨幣功能
+        import('./js/features/crypto.js').catch(error => {
+            console.error('❌ 加密貨幣功能載入失敗:', error);
+        });
     </script>
     <script src="js/ui/customSelect.js"></script>
     
@@ -508,7 +513,7 @@
                     </table>
                 </section>
 
-                <!-- API 控制面板（安全小改，不影響既有功能） -->
+                <!-- API 控制面板 -->
                 <section class="card neutral-theme" style="display: none;">
                     <h3 class="card-header">
                         <span class="emoji">🛠️</span>
@@ -654,16 +659,6 @@
                         <div class="form-row core-fields crypto-form">
                             <div class="text-field">
                                 <select id="cryptoSymbol" required>
-                                    <option value="BTC">BTC (Bitcoin)</option>
-                                    <option value="ETH">ETH (Ethereum)</option>
-                                    <option value="BNB">BNB (Binance Coin)</option>
-                                    <option value="ADA">ADA (Cardano)</option>
-                                    <option value="SOL">SOL (Solana)</option>
-                                    <option value="DOGE">DOGE (Dogecoin)</option>
-                                    <option value="SHIB">SHIB (Shiba Inu)</option>
-                                    <option value="USDT">USDT (Tether)</option>
-                                    <option value="USDC">USDC (USD Coin)</option>
-                                    <option value="OKB">OKB (OKX Token)</option>
                                 </select>
                                 <label>幣種</label>
                             </div>
@@ -1110,8 +1105,6 @@
             </div>
         </main>
     </div>
-
-    <!-- 已移除重複的模組載入，統一使用頁面頂部的動態載入 -->
     
     <!-- M3 Expressive 進階功能 JavaScript -->
     <script>
@@ -1156,6 +1149,7 @@
             
             // 預設顯示第一個頁籤
             window.showTab('stocks');
+
         });
 
         // 進階選項切換功能

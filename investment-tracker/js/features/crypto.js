@@ -14,6 +14,7 @@ import { storeManager } from '../data/storeManager.js';
 import { validateData } from '../data/dataStructure.js';
 import { updateAllTablesAndSummary } from './summary.js';
 import { calculateCryptoHoldings } from './portfolio.js';
+import { CRYPTO_DEFAULT_SYMBOLS } from '../core/constants.js';
 
 /**
  * 保存投資組合資料到 electron-store
@@ -63,19 +64,8 @@ function updateCryptoSymbolDatalist() {
     // 獲取所有已使用的加密貨幣符號
     const existingSymbols = [...new Set(cryptoRecords.map(record => record.symbol))];
     
-    // 預設選項
-    const defaultOptions = [
-        { value: 'BTC', label: 'BTC (Bitcoin)' },
-        { value: 'ETH', label: 'ETH (Ethereum)' },
-        { value: 'BNB', label: 'BNB (Binance Coin)' },
-        { value: 'ADA', label: 'ADA (Cardano)' },
-        { value: 'SOL', label: 'SOL (Solana)' },
-        { value: 'DOT', label: 'DOT (Polkadot)' },
-        { value: 'MATIC', label: 'MATIC (Polygon)' },
-        { value: 'AVAX', label: 'AVAX (Avalanche)' },
-        { value: 'UNI', label: 'UNI (Uniswap)' },
-        { value: 'LINK', label: 'LINK (Chainlink)' }
-    ];
+    // 預設選項（改為引用共用常數）
+    const defaultOptions = CRYPTO_DEFAULT_SYMBOLS;
     
     // 合併預設選項和已使用的符號
     const allSymbols = new Set([
@@ -108,6 +98,21 @@ export function initializeCryptoPage() {
     const amountInput = document.getElementById('cryptoAmount');
     const priceInput = document.getElementById('cryptoPrice');
     const feeInput = document.getElementById('cryptoFee');
+
+    // 確保幣種 select 有選項（從共用常數填充）
+    const symbolSelect = document.getElementById('cryptoSymbol');
+    if (symbolSelect && symbolSelect.options.length === 0) {
+        CRYPTO_DEFAULT_SYMBOLS.forEach(({ value, label }) => {
+            const opt = document.createElement('option');
+            opt.value = value;
+            opt.textContent = label;
+            symbolSelect.appendChild(opt);
+        });
+        // 刷新自定義選單 UI
+        if (window.refreshCustomSelectFor) {
+            window.refreshCustomSelectFor('cryptoSymbol');
+        }
+    }
     
     // 為所有數字輸入欄位添加長度限制
     const numberInputs = [
@@ -171,34 +176,53 @@ export async function addCryptoRecord() {
     const price = parseFloat(document.getElementById('cryptoPrice')?.value);
     const fee = parseFloat(document.getElementById('cryptoFee')?.value) || 0;
 
-    // 驗證數量格式和轉換
+    // 1) 先檢查日期
+    if (!date) {
+        mdAlert('請選擇交易日期', 'error');
+        document.getElementById('cryptoDate')?.focus();
+        return;
+    }
+
+    // 2) 檢查幣種是否選擇
+    if (!symbol) {
+        mdAlert('請選擇幣種', 'error');
+        document.getElementById('cryptoSymbol')?.focus();
+        return;
+    }
+
+    // 3) 驗證數量格式和轉換
     if (!amountStr || !/^\d*\.?\d*$/.test(amountStr)) {
         mdAlert('請輸入有效的數量格式（例如：0.00000001）', 'error');
+        document.getElementById('cryptoAmount')?.focus();
         return;
     }
-    
     const amount = parseFloat(amountStr);
-    
-    if (!symbol || !date || isNaN(amount) || isNaN(price)) {
+
+    // 4) 必填欄位檢查（價格）
+    if (isNaN(amount) || isNaN(price)) {
         mdAlert('請填寫所有必要欄位', 'error');
+        if (isNaN(price)) document.getElementById('cryptoPrice')?.focus();
         return;
     }
-    
+
     // 檢查數量是否為正數
     if (amount <= 0) {
         mdAlert('數量必須大於0', 'error');
+        document.getElementById('cryptoAmount')?.focus();
         return;
     }
-    
+
     // 檢查價格是否為正數
     if (price <= 0) {
         mdAlert('價格必須大於0', 'error');
+        document.getElementById('cryptoPrice')?.focus();
         return;
     }
-    
+
     // 檢查手續費是否為負數
     if (fee < 0) {
         mdAlert('手續費不能為負數', 'error');
+        document.getElementById('cryptoFee')?.focus();
         return;
     }
 

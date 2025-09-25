@@ -1,5 +1,20 @@
 # 更新日誌
 
+## [2.1.3] - 2025-09-25 - 加密貨幣選單修復與自訂選單刷新
+
+### 🛠 修復
+- 加密貨幣頁籤：修正幣種下拉選單未載入項目的問題。
+  - 在 `door.html` 正式引用 `js/features/crypto.js`（確保初始化執行）。
+  - 移除 `door.html` 內對幣種選項的重複填充，改由 `crypto.js` 單一來源負責。
+
+### ✨ 技術優化
+- 自訂下拉選單（`customSelect.js`）新增重建能力：
+  - 提供 `window.refreshCustomSelectFor(selectId)` 以便動態變更選項後即時刷新 UI。
+  - 在填充 `#cryptoSymbol` 後自動呼叫刷新，避免 UI 與原生選項不同步。
+- 常數集中：持續使用 `js/core/constants.js` 的 `CRYPTO_DEFAULT_SYMBOLS` 作為唯一幣種清單來源。
+
+---
+
 ## [2.1.2] - 2025-09-24 - 修復匯出與狀態提示優化
 
 ### 🛠 修復

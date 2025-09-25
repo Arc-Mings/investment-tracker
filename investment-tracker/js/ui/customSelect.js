@@ -74,6 +74,8 @@ class CustomSelect {
         
         // 註冊到全局管理器
         selectManager.register(this);
+        // 保存實例到容器，便於之後 refresh
+        this.element._customSelectInstance = this;
         
         this.init();
         this.bindEvents();
@@ -316,12 +318,14 @@ class CustomSelect {
         selectManager.unregister(this);
         
         this.element.classList.remove('custom-select', 'open');
-        this.trigger.remove();
-        this.optionsContainer.remove();
+        if (this.trigger) this.trigger.remove();
+        if (this.optionsContainer) this.optionsContainer.remove();
         
         if (this.nativeSelect) {
             this.nativeSelect.style.display = '';
         }
+        // 移除實例參考
+        delete this.element._customSelectInstance;
     }
 }
 
@@ -340,6 +344,17 @@ function initializeCustomSelects() {
         }
     });
 }
+
+// 新增：重建指定 select 的自定義選單（在動態修改選項後呼叫）
+window.refreshCustomSelectFor = function(selectId) {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    const container = sel.closest('.text-field');
+    if (!container) return;
+    const inst = container._customSelectInstance;
+    if (inst) inst.destroy();
+    new CustomSelect(container);
+};
 
 // 導出供其他模組使用
 window.CustomSelect = CustomSelect;
