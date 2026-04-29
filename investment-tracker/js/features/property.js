@@ -12,6 +12,16 @@ import { storeManager } from '../data/storeManager.js';
 import { validateData } from '../data/dataStructure.js';
 import { updateAllTablesAndSummary } from './summary.js';
 
+function escapeHtml(value) {
+    const text = String(value ?? '');
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 /**
  * 保存投資組合資料到 electron-store
  */
@@ -134,14 +144,14 @@ export function updatePropertyTable() {
     if (!tableBody) return;
     tableBody.innerHTML = propertyRecords.map(record => `
         <tr>
-            <td>${record.name}</td>
+            <td>${escapeHtml(record.name)}</td>
             <td>${record.total.toLocaleString()}</td>
             <td>${record.down?.toLocaleString()}</td>
             <td>${record.loan.toLocaleString()}</td>
             <td>${record.rate?.toString() ?? ''}%</td>
             <td>${record.years?.toString() ?? ''}</td>
             <td>
-                <button class="icon-button" onclick="deletePropertyRecord(${record.id})">
+                <button class="icon-button" onclick="deletePropertyRecord(${Number(record.id) || 0})">
                     <span class="material-icons">delete</span>
                 </button>
             </td>
@@ -216,12 +226,12 @@ export function updatePaymentTable() {
     paymentRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
     tableBody.innerHTML = paymentRecords.map(record => `
         <tr>
-            <td>${record.date}</td>
+            <td>${escapeHtml(record.date)}</td>
             <td>${record.amount.toLocaleString()}</td>
             <td>${record.principal?.toLocaleString()}</td>
             <td>${record.interest?.toLocaleString()}</td>
             <td>
-                <button class="icon-button" onclick="deletePaymentRecord(${record.id})">
+                <button class="icon-button" onclick="deletePaymentRecord(${Number(record.id) || 0})">
                     <span class="material-icons">delete</span>
                 </button>
             </td>

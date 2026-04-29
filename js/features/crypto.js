@@ -14,6 +14,24 @@ import { saveToLocalStorage } from '../data/storage.js';
 import { updateAllTablesAndSummary } from './summary.js';
 import { calculateCryptoHoldings } from './portfolio.js';
 
+function escapeHtml(value) {
+    const text = String(value ?? '');
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function safeJsString(value) {
+    return String(value ?? '')
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/\r/g, '\\r')
+        .replace(/\n/g, '\\n');
+}
+
 /**
  * 格式化加密貨幣數量顯示（最多8位小數，去除尾隨零）
  * @param {number} amount - 數量
@@ -141,6 +159,7 @@ export function addCryptoRecord() {
     const symbol = document.getElementById('cryptoSymbol')?.value;
     const type = document.getElementById('cryptoType')?.value;
     const date = document.getElementById('cryptoDate')?.value;
+    const exchange = document.getElementById('cryptoExchange')?.value;
     const amountStr = document.getElementById('cryptoAmount')?.value;
     const price = parseFloat(document.getElementById('cryptoPrice')?.value);
     const fee = parseFloat(document.getElementById('cryptoFee')?.value) || 0;
@@ -153,7 +172,7 @@ export function addCryptoRecord() {
     
     const amount = parseFloat(amountStr);
     
-    if (!symbol || !date || isNaN(amount) || isNaN(price)) {
+    if (!symbol || !date || !exchange || isNaN(amount) || isNaN(price)) {
         alert('請填寫所有必要欄位');
         return;
     }
@@ -207,7 +226,7 @@ export function addCryptoRecord() {
 
     const total = (amount * price) + (type === '買入' ? fee : -fee);
 
-    cryptoRecords.push({ id: Date.now(), symbol, type, date, amount, price, fee, total });
+    cryptoRecords.push({ id: Date.now(), symbol, type, date, exchange, amount, price, fee, total });
     updateAllTablesAndSummary();
     updateCryptoHoldingsTable();
     updateCryptoSymbolDatalist(); // 更新下拉選單
@@ -228,15 +247,16 @@ export function updateCryptoTable() {
     cryptoRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
     tableBody.innerHTML = cryptoRecords.map(record => `
         <tr>
-            <td>${record.date}</td>
-            <td>${record.symbol}</td>
+            <td>${escapeHtml(record.date)}</td>
+            <td>${escapeHtml(record.symbol)}</td>
             <td class="${record.type === '買入' ? 'positive' : 'negative'}">${record.type}</td>
+            <td>${escapeHtml(record.exchange || '未指定')}</td>
             <td>${formatCryptoAmount(record.amount)}</td>
             <td>TWD ${record.price.toLocaleString()}</td>
             <td>TWD ${record.fee.toLocaleString()}</td>
             <td>TWD ${Math.abs(record.total).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
             <td>
-                <button class="icon-button" onclick="deleteCryptoRecord(${record.id})">
+                <button class="icon-button" onclick="deleteCryptoRecord(${Number(record.id) || 0})">
                     <span class="material-icons">delete</span>
                 </button>
             </td>
@@ -258,12 +278,12 @@ export function updateCryptoHoldingsTable() {
         
         return `
             <tr>
-                <td>${holding.symbol}</td>
+                <td>${escapeHtml(holding.symbol)}</td>
                 <td>${formatCryptoAmount(holding.totalAmount)}</td>
                 <td>TWD ${holding.averagePrice.toFixed(2)}</td>
                 <td>TWD ${totalValue.toLocaleString()}</td>
                 <td>
-                    <button class="outlined-button" onclick="quickSellCrypto('${holding.symbol}', ${holding.totalAmount})">
+                    <button class="outlined-button" onclick="quickSellCrypto('${safeJsString(holding.symbol)}', ${holding.totalAmount})">
                         <span class="material-icons">sell</span>
                         快速賣出
                     </button>

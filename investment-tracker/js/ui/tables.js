@@ -6,6 +6,21 @@
 import { stockRecords, fundRecords, cryptoRecords, propertyRecords, paymentRecords } from '../core/state.js';
 import { deleteRecord } from '../data/storage.js';
 
+function escapeHtml(value) {
+    const text = String(value ?? '');
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function safeId(value) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+}
+
 /**
  * 更新股票表格
  */
@@ -14,16 +29,16 @@ export function updateStockTable() {
     if (!tbody) return;
     tbody.innerHTML = stockRecords.map(record => `
         <tr>
-            <td>${record.market}</td>
-            <td>${record.assetType}</td>
-            <td>${record.code}</td>
-            <td>${record.type}</td>
-            <td>${record.date}</td>
-            <td>${record.shares}</td>
-            <td>${record.price}</td>
-            <td>${record.fee}</td>
-            <td>${record.total}</td>
-            <td><button class="btn btn-danger" onclick="deleteStock(${record.id})">刪除</button></td>
+            <td>${escapeHtml(record.market)}</td>
+            <td>${escapeHtml(record.assetType)}</td>
+            <td>${escapeHtml(record.code)}</td>
+            <td>${escapeHtml(record.type)}</td>
+            <td>${escapeHtml(record.date)}</td>
+            <td>${escapeHtml(record.shares)}</td>
+            <td>${escapeHtml(record.price)}</td>
+            <td>${escapeHtml(record.fee)}</td>
+            <td>${escapeHtml(record.total)}</td>
+            <td><button class="btn btn-danger" onclick="deleteStock(${safeId(record.id)})">刪除</button></td>
         </tr>
     `).join('');
 }
@@ -36,13 +51,13 @@ export function updateFundTable() {
     if (!tbody) return;
     tbody.innerHTML = fundRecords.map(record => `
         <tr>
-            <td>${record.name}</td>
-            <td>${record.date}</td>
-            <td>${record.amount}</td>
-            <td>${record.nav}</td>
-            <td>${record.units}</td>
-            <td>${record.fee}</td>
-            <td><button class="btn btn-danger" onclick="deleteFund(${record.id})">刪除</button></td>
+            <td>${escapeHtml(record.name)}</td>
+            <td>${escapeHtml(record.date)}</td>
+            <td>${escapeHtml(record.amount)}</td>
+            <td>${escapeHtml(record.nav)}</td>
+            <td>${escapeHtml(record.units)}</td>
+            <td>${escapeHtml(record.fee)}</td>
+            <td><button class="btn btn-danger" onclick="deleteFund(${safeId(record.id)})">刪除</button></td>
         </tr>
     `).join('');
 }
@@ -55,14 +70,14 @@ export function updateCryptoTable() {
     if (!tbody) return;
     tbody.innerHTML = cryptoRecords.map(record => `
         <tr>
-            <td>${record.symbol}</td>
-            <td>${record.type}</td>
-            <td>${record.date}</td>
-            <td>${record.amount}</td>
-            <td>${record.price}</td>
-            <td>${record.fee}</td>
-            <td>${record.total}</td>
-            <td><button class="btn btn-danger" onclick="deleteCrypto(${record.id})">刪除</button></td>
+            <td>${escapeHtml(record.symbol)}</td>
+            <td>${escapeHtml(record.type)}</td>
+            <td>${escapeHtml(record.date)}</td>
+            <td>${escapeHtml(record.amount)}</td>
+            <td>${escapeHtml(record.price)}</td>
+            <td>${escapeHtml(record.fee)}</td>
+            <td>${escapeHtml(record.total)}</td>
+            <td><button class="btn btn-danger" onclick="deleteCrypto(${safeId(record.id)})">刪除</button></td>
         </tr>
     `).join('');
 }
@@ -75,13 +90,13 @@ export function updatePropertyTable() {
     if (!tbody) return;
     tbody.innerHTML = propertyRecords.map(record => `
         <tr>
-            <td>${record.name}</td>
-            <td>${record.total}</td>
-            <td>${record.down}</td>
-            <td>${record.loan}</td>
-            <td>${record.rate}%</td>
-            <td>${record.years}</td>
-            <td><button class="btn btn-danger" onclick="deleteProperty(${record.id})">刪除</button></td>
+            <td>${escapeHtml(record.name)}</td>
+            <td>${escapeHtml(record.total)}</td>
+            <td>${escapeHtml(record.down)}</td>
+            <td>${escapeHtml(record.loan)}</td>
+            <td>${escapeHtml(record.rate)}%</td>
+            <td>${escapeHtml(record.years)}</td>
+            <td><button class="btn btn-danger" onclick="deleteProperty(${safeId(record.id)})">刪除</button></td>
         </tr>
     `).join('');
 }
@@ -94,11 +109,11 @@ export function updatePaymentTable() {
     if (!tbody) return;
     tbody.innerHTML = paymentRecords.map(record => `
         <tr>
-            <td>${record.date}</td>
-            <td>${record.amount}</td>
-            <td>${record.principal}</td>
-            <td>${record.interest}</td>
-            <td><button class="btn btn-danger" onclick="deletePayment(${record.id})">刪除</button></td>
+            <td>${escapeHtml(record.date)}</td>
+            <td>${escapeHtml(record.amount)}</td>
+            <td>${escapeHtml(record.principal)}</td>
+            <td>${escapeHtml(record.interest)}</td>
+            <td><button class="btn btn-danger" onclick="deletePayment(${safeId(record.id)})">刪除</button></td>
         </tr>
     `).join('');
 }

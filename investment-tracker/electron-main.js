@@ -30,6 +30,46 @@ const store = new Store({
 });
 
 let mainWindow;
+const ALLOWED_STORE_KEY_PREFIXES = ['portfolio', 'settings'];
+const ALLOWED_FILE_EXTENSIONS = new Set(['.json']);
+
+function isAllowedStoreKey(key) {
+    if (typeof key !== 'string') return false;
+    return ALLOWED_STORE_KEY_PREFIXES.some(prefix => key === prefix || key.startsWith(`${prefix}.`));
+}
+
+function getAllowedBaseDirs() {
+    return [
+        'E:/InvestmentData',
+        app.getPath('documents'),
+        app.getPath('downloads'),
+        app.getPath('desktop')
+    ].map(dir => path.resolve(dir));
+}
+
+function isPathInAllowedDirs(targetPath) {
+    const resolvedTarget = path.resolve(targetPath);
+    return getAllowedBaseDirs().some(baseDir => {
+        const normalizedBase = path.resolve(baseDir) + path.sep;
+        return resolvedTarget === path.resolve(baseDir) || resolvedTarget.startsWith(normalizedBase);
+    });
+}
+
+function validateJsonFilePath(filepath) {
+    if (typeof filepath !== 'string' || filepath.length === 0 || filepath.includes('\0')) {
+        throw new Error('Invalid file path');
+    }
+
+    const resolvedPath = path.resolve(filepath);
+    const extension = path.extname(resolvedPath).toLowerCase();
+    if (!ALLOWED_FILE_EXTENSIONS.has(extension)) {
+        throw new Error('Only .json files are allowed');
+    }
+    if (!isPathInAllowedDirs(resolvedPath)) {
+        throw new Error('Path is outside allowed directories');
+    }
+    return resolvedPath;
+}
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -112,6 +152,9 @@ app.on('activate', () => {
 // IPC 處理器 - electron-store 操作
 ipcMain.handle('store-get', (event, key) => {
     try {
+        if (!isAllowedStoreKey(key)) {
+            return null;
+        }
         return store.get(key);
     } catch (error) {
         console.error('Store get error:', error);
@@ -121,6 +164,9 @@ ipcMain.handle('store-get', (event, key) => {
 
 ipcMain.handle('store-set', (event, key, value) => {
     try {
+        if (!isAllowedStoreKey(key)) {
+            return false;
+        }
         store.set(key, value);
         return true;
     } catch (error) {
@@ -131,6 +177,9 @@ ipcMain.handle('store-set', (event, key, value) => {
 
 ipcMain.handle('store-delete', (event, key) => {
     try {
+        if (!isAllowedStoreKey(key)) {
+            return false;
+        }
         store.delete(key);
         return true;
     } catch (error) {
@@ -141,7 +190,8 @@ ipcMain.handle('store-delete', (event, key) => {
 
 ipcMain.handle('store-clear', () => {
     try {
-        store.clear();
+        // 只清理允許的命名空間，避免 renderer 可清空非預期資料
+        ALLOWED_STORE_KEY_PREFIXES.forEach(prefix => store.delete(prefix));
         return true;
     } catch (error) {
         console.error('Store clear error:', error);
@@ -153,10 +203,9 @@ ipcMain.handle('store-clear', () => {
 ipcMain.handle('show-save-dialog', async () => {
     const result = await dialog.showSaveDialog(mainWindow, {
         filters: [
-            { name: 'JSON 檔案', extensions: ['json'] },
-            { name: '所有檔案', extensions: ['*'] }
+            { name: 'JSON 檔案', extensions: ['json'] }
         ],
-        defaultPath: 'investment-backup.json'
+        defaultPath: path.join(app.getPath('documents'), 'investment-backup.json')
     });
     return result;
 });
@@ -164,8 +213,7 @@ ipcMain.handle('show-save-dialog', async () => {
 ipcMain.handle('show-open-dialog', async () => {
     const result = await dialog.showOpenDialog(mainWindow, {
         filters: [
-            { name: 'JSON 檔案', extensions: ['json'] },
-            { name: '所有檔案', extensions: ['*'] }
+            { name: 'JSON 檔案', extensions: ['json'] }
         ],
         properties: ['openFile']
     });
@@ -175,7 +223,11 @@ ipcMain.handle('show-open-dialog', async () => {
 // 檔案讀寫
 ipcMain.handle('write-file', async (event, filepath, data) => {
     try {
-        fs.writeFileSync(filepath, data, 'utf8');
+        const safePath = validateJsonFilePath(filepath);
+        if (typeof data !== 'string') {
+            return false;
+        }
+        fs.writeFileSync(safePath, data, 'utf8');
         return true;
     } catch (error) {
         console.error('Write file error:', error);
@@ -185,7 +237,8 @@ ipcMain.handle('write-file', async (event, filepath, data) => {
 
 ipcMain.handle('read-file', async (event, filepath) => {
     try {
-        return fs.readFileSync(filepath, 'utf8');
+        const safePath = validateJsonFilePath(filepath);
+        return fs.readFileSync(safePath, 'utf8');
     } catch (error) {
         console.error('Read file error:', error);
         return null;

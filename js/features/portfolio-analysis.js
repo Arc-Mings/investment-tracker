@@ -11,6 +11,24 @@
 import { calculateStockHoldings, calculateFundHoldings, calculateCryptoHoldings } from './portfolio.js';
 import { showTab } from '../ui/uiManager.js';
 
+function escapeHtml(value) {
+    const text = String(value ?? '');
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function safeJsString(value) {
+    return String(value ?? '')
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/\r/g, '\\r')
+        .replace(/\n/g, '\\n');
+}
+
 /**
  * 格式化加密貨幣數量顯示（最多8位小數，去除尾隨零）
  * @param {number} amount - 數量
@@ -136,7 +154,7 @@ function updatePortfolioOverviewTable() {
             unrealizedPL: unrealizedPL,
             returnRate: returnRate,
             currency: holding.market === '台股' ? 'TWD' : 'USD',
-            action: `quickSell('${holding.market}', '${holding.code}', ${holding.totalShares})`
+            action: `quickSell('${safeJsString(holding.market)}', '${safeJsString(holding.code)}', ${holding.totalShares})`
         });
     });
 
@@ -156,7 +174,7 @@ function updatePortfolioOverviewTable() {
             unrealizedPL: unrealizedPL,
             returnRate: returnRate,
             currency: 'TWD',
-            action: `quickRedeem('${holding.name}', ${holding.totalUnits})`
+            action: `quickRedeem('${safeJsString(holding.name)}', ${holding.totalUnits})`
         });
     });
 
@@ -176,7 +194,7 @@ function updatePortfolioOverviewTable() {
             unrealizedPL: unrealizedPL,
             returnRate: returnRate,
             currency: 'TWD',
-            action: `quickSellCrypto('${holding.symbol}', ${holding.totalAmount})`,
+            action: `quickSellCrypto('${safeJsString(holding.symbol)}', ${holding.totalAmount})`,
             symbol: holding.symbol, // 新增這個欄位用於單獨統計
             individualValue: currentValue // 新增這個欄位用於單獨統計
         });
@@ -190,11 +208,11 @@ function updatePortfolioOverviewTable() {
 
     tableBody.innerHTML = allHoldings.map(holding => `
         <tr>
-            <td>${holding.type}</td>
-            <td>${holding.name}</td>
-            <td>${holding.quantity}</td>
-            <td>${holding.currency} ${holding.avgCost}</td>
-            <td>${holding.currentValue}</td>
+            <td>${escapeHtml(holding.type)}</td>
+            <td>${escapeHtml(holding.name)}</td>
+            <td>${escapeHtml(holding.quantity)}</td>
+            <td>${escapeHtml(holding.currency)} ${escapeHtml(holding.avgCost)}</td>
+            <td>${escapeHtml(holding.currentValue)}</td>
             <td>
                 <span class="profit-loss-badge ${holding.unrealizedPL >= 0 ? 'profit' : 'loss'}">
                     <span class="material-icons">${holding.unrealizedPL >= 0 ? 'trending_up' : 'trending_down'}</span>

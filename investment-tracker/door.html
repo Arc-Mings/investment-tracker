@@ -163,7 +163,13 @@
                 
                 const content = document.createElement('div');
                 content.className = 'custom-dialog-content';
-                content.innerHTML = (options.message || '').replace(/\n/g, '<br>');
+                const messageLines = String(options.message || '').split('\n');
+                messageLines.forEach((line, index) => {
+                    if (index > 0) {
+                        content.appendChild(document.createElement('br'));
+                    }
+                    content.appendChild(document.createTextNode(line));
+                });
                 
                 const actions = document.createElement('div');
                 actions.className = 'custom-dialog-actions';
@@ -673,6 +679,23 @@
                                 <input type="date" id="cryptoDate" required>
                                 <label>交易日期</label>
                             </div>
+                            <div class="text-field">
+                                <select id="cryptoExchange">
+                                    <option value="Binance">Binance</option>
+                                    <option value="Coinbase">Coinbase</option>
+                                    <option value="Kraken">Kraken</option>
+                                    <option value="Huobi">Huobi</option>
+                                    <option value="OKX">OKX</option>
+                                    <option value="Bybit">Bybit</option>
+                                    <option value="KuCoin">KuCoin</option>
+                                    <option value="Gate.io">Gate.io</option>
+                                    <option value="Bitget">Bitget</option>
+                                    <option value="MEXC">MEXC</option>
+                                    <option value="其他">其他</option>
+                                </select>
+                                <label>交易所</label>
+                                <div class="helper-text">選擇您使用的交易平台</div>
+                            </div>
                         </div>
                     </div>
                     
@@ -735,6 +758,7 @@
                                 <th>日期</th>
                                 <th>幣種</th>
                                 <th>類型</th>
+                                <th>交易所</th>
                                 <th>數量</th>
                                 <th>價格 (TWD)</th>
                                 <th>手續費 (TWD)</th>

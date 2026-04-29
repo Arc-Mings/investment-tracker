@@ -13,20 +13,114 @@ import { updateAllTablesAndSummary } from '../features/summary.js';
 import { updateLastSaveTime } from '../ui/uiManager.js';
 
 const STORAGE_KEY = 'investmentTracker';
+const STORAGE_VERSION = '1.1';
+
+function toNumber(value, fallback = 0) {
+    const num = Number(value);
+    return Number.isFinite(num) ? num : fallback;
+}
+
+function toText(value) {
+    return String(value ?? '').trim();
+}
+
+function sanitizeStocks(records) {
+    if (!Array.isArray(records)) return [];
+    return records.map(record => ({
+        id: toNumber(record?.id, Date.now()),
+        market: toText(record?.market),
+        assetType: toText(record?.assetType),
+        code: toText(record?.code),
+        name: toText(record?.name),
+        type: toText(record?.type),
+        date: toText(record?.date),
+        shares: toNumber(record?.shares),
+        price: toNumber(record?.price),
+        fee: toNumber(record?.fee),
+        tax: toNumber(record?.tax),
+        total: toNumber(record?.total)
+    }));
+}
+
+function sanitizeFunds(records) {
+    if (!Array.isArray(records)) return [];
+    return records.map(record => ({
+        id: toNumber(record?.id, Date.now()),
+        type: toText(record?.type),
+        name: toText(record?.name),
+        date: toText(record?.date),
+        amount: toNumber(record?.amount),
+        nav: toNumber(record?.nav),
+        units: toNumber(record?.units),
+        fee: toNumber(record?.fee)
+    }));
+}
+
+function sanitizeCrypto(records) {
+    if (!Array.isArray(records)) return [];
+    return records.map(record => ({
+        id: toNumber(record?.id, Date.now()),
+        symbol: toText(record?.symbol),
+        type: toText(record?.type),
+        date: toText(record?.date),
+        exchange: toText(record?.exchange),
+        amount: toNumber(record?.amount),
+        price: toNumber(record?.price),
+        fee: toNumber(record?.fee),
+        total: toNumber(record?.total)
+    }));
+}
+
+function sanitizeProperty(records) {
+    if (!Array.isArray(records)) return [];
+    return records.map(record => ({
+        id: toNumber(record?.id, Date.now()),
+        name: toText(record?.name),
+        total: toNumber(record?.total),
+        down: toNumber(record?.down),
+        loan: toNumber(record?.loan),
+        rate: toNumber(record?.rate),
+        years: toNumber(record?.years)
+    }));
+}
+
+function sanitizePayments(records) {
+    if (!Array.isArray(records)) return [];
+    return records.map(record => ({
+        id: toNumber(record?.id, Date.now()),
+        date: toText(record?.date),
+        amount: toNumber(record?.amount),
+        principal: toNumber(record?.principal),
+        interest: toNumber(record?.interest)
+    }));
+}
+
+function sanitizePortfolioData(rawData = {}) {
+    return {
+        stocks: sanitizeStocks(rawData.stocks),
+        funds: sanitizeFunds(rawData.funds),
+        crypto: sanitizeCrypto(rawData.crypto),
+        property: sanitizeProperty(rawData.property),
+        payments: sanitizePayments(rawData.payments)
+    };
+}
 
 /**
  * 將所有紀錄儲存到 localStorage。
  */
 export function saveToLocalStorage() {
     try {
-        const data = {
+        const sanitized = sanitizePortfolioData({
             stocks: stockRecords,
             funds: fundRecords,
             crypto: cryptoRecords,
             property: propertyRecords,
-            payments: paymentRecords,
+            payments: paymentRecords
+        });
+        const data = {
+            ...sanitized,
             lastSave: new Date().toISOString(),
-            version: '1.0'
+            version: STORAGE_VERSION
         };
         
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -51,13 +145,14 @@ export function loadFromLocalStorage() {
         }
         
         const data = JSON.parse(saved);
+        const sanitized = sanitizePortfolioData(data);
         
         // 使用 splice 來更新陣列，以保持引用不變
-        stockRecords.splice(0, stockRecords.length, ...(data.stocks || []));
-        fundRecords.splice(0, fundRecords.length, ...(data.funds || []));
-        cryptoRecords.splice(0, cryptoRecords.length, ...(data.crypto || []));
-        propertyRecords.splice(0, propertyRecords.length, ...(data.property || []));
-        paymentRecords.splice(0, paymentRecords.length, ...(data.payments || []));
+        stockRecords.splice(0, stockRecords.length, ...sanitized.stocks);
+        fundRecords.splice(0, fundRecords.length, ...sanitized.funds);
+        cryptoRecords.splice(0, cryptoRecords.length, ...sanitized.crypto);
+        propertyRecords.splice(0, propertyRecords.length, ...sanitized.property);
+        paymentRecords.splice(0, paymentRecords.length, ...sanitized.payments);
 
         console.log("Data loaded successfully from localStorage.");
         updateAllTablesAndSummary();
@@ -73,13 +168,15 @@ export function loadFromLocalStorage() {
  */
 export function exportData() {
     const data = {
-        stocks: stockRecords,
-        funds: fundRecords,
-        crypto: cryptoRecords,
-        property: propertyRecords,
-        payments: paymentRecords,
+        ...sanitizePortfolioData({
+            stocks: stockRecords,
+            funds: fundRecords,
+            crypto: cryptoRecords,
+            property: propertyRecords,
+            payments: paymentRecords
+        }),
         exportTime: new Date().toISOString(),
-        version: '1.0'
+        version: STORAGE_VERSION
     };
     
     const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
@@ -110,6 +207,7 @@ export function importData(event) {
             
             // 簡單驗證檔案格式
             if (data.stocks && Array.isArray(data.stocks)) {
+                const sanitized = sanitizePortfolioData(data);
                 if (confirm('確定要匯入備份資料嗎？這將覆蓋目前的所有記錄！')) {
                     // 先清空現有陣列
                     stockRecords.length = 0;
@@ -119,11 +217,11 @@ export function importData(event) {
                     paymentRecords.length = 0;
                     
                     // 再將新資料載入
-                    stockRecords.push(...(data.stocks || []));
-                    fundRecords.push(...(data.funds || []));
-                    cryptoRecords.push(...(data.crypto || []));
-                    propertyRecords.push(...(data.property || []));
-                    paymentRecords.push(...(data.payments || []));
+                    stockRecords.push(...sanitized.stocks);
+                    fundRecords.push(...sanitized.funds);
+                    cryptoRecords.push(...sanitized.crypto);
+                    propertyRecords.push(...sanitized.property);
+                    paymentRecords.push(...sanitized.payments);
                     
                     updateAllTablesAndSummary(); // 更新 UI
                     saveToLocalStorage(); // 儲存到本地

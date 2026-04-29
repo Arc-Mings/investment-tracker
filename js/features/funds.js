@@ -14,6 +14,24 @@ import { saveToLocalStorage } from '../data/storage.js';
 import { updateAllTablesAndSummary } from './summary.js';
 import { calculateFundHoldings } from './portfolio.js';
 
+function escapeHtml(value) {
+    const text = String(value ?? '');
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function safeJsString(value) {
+    return String(value ?? '')
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/\r/g, '\\r')
+        .replace(/\n/g, '\\n');
+}
+
 /**
  * 初始化基金頁面的事件監聽器
  */
@@ -170,15 +188,15 @@ export function updateFundTable() {
     fundRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
     tableBody.innerHTML = fundRecords.map(record => `
         <tr>
-            <td>${record.date}</td>
+            <td>${escapeHtml(record.date)}</td>
             <td class="${(record.type === '贖回') ? 'negative' : 'positive'}">${record.type || '買入'}</td>
-            <td>${record.name}</td>
+            <td>${escapeHtml(record.name)}</td>
             <td>${record.amount.toLocaleString()}</td>
             <td>${record.nav.toFixed(4)}</td>
             <td>${record.units.toFixed(4)}</td>
             <td>${record.fee.toLocaleString()}</td>
             <td>
-                <button class="icon-button" onclick="deleteFundRecord(${record.id})">
+                <button class="icon-button" onclick="deleteFundRecord(${Number(record.id) || 0})">
                     <span class="material-icons">delete</span>
                 </button>
             </td>
@@ -200,12 +218,12 @@ export function updateFundHoldingsTable() {
         
         return `
             <tr>
-                <td>${holding.name}</td>
+                <td>${escapeHtml(holding.name)}</td>
                 <td>${holding.totalUnits.toFixed(4)}</td>
                 <td>${holding.averageNav.toFixed(4)}</td>
                 <td>${totalValue.toLocaleString()}</td>
                 <td>
-                    <button class="outlined-button" onclick="quickRedeem('${holding.name}', ${holding.totalUnits})">
+                    <button class="outlined-button" onclick="quickRedeem('${safeJsString(holding.name)}', ${holding.totalUnits})">
                         <span class="material-icons">sell</span>
                         快速贖回
                     </button>

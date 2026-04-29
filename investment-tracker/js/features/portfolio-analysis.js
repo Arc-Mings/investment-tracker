@@ -11,6 +11,16 @@
 import { calculateStockHoldings, calculateFundHoldings, calculateCryptoHoldings } from './portfolio.js';
 import { showTab } from '../ui/uiManager.js';
 
+function escapeHtml(value) {
+    const text = String(value ?? '');
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 /**
  * 格式化加密貨幣數量顯示（最多8位小數，去除尾隨零）
  * @param {number} amount - 數量
@@ -188,11 +198,11 @@ function updatePortfolioOverviewTable() {
 
     tableBody.innerHTML = allHoldings.map(holding => `
         <tr>
-            <td>${holding.type}</td>
-            <td>${holding.name}</td>
-            <td>${holding.quantity}</td>
-            <td>${holding.currency} ${holding.avgCost}</td>
-            <td>${holding.currentValue}</td>
+            <td>${escapeHtml(holding.type)}</td>
+            <td>${escapeHtml(holding.name)}</td>
+            <td>${escapeHtml(holding.quantity)}</td>
+            <td>${escapeHtml(holding.currency)} ${escapeHtml(holding.avgCost)}</td>
+            <td>${escapeHtml(holding.currentValue)}</td>
             <td>
                 <span class="profit-loss-badge ${holding.unrealizedPL >= 0 ? 'profit' : 'loss'}">
                     <span class="material-icons">${holding.unrealizedPL >= 0 ? 'trending_up' : 'trending_down'}</span>

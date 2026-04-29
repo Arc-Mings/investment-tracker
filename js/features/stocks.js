@@ -15,6 +15,24 @@ import { updateAllTablesAndSummary } from './summary.js';
 import { calculateStockHoldings, calculateProfitLoss } from './portfolio.js';
 import { queryStockName } from '../services/stockApiService.js';
 
+function escapeHtml(value) {
+    const text = String(value ?? '');
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function safeJsString(value) {
+    return String(value ?? '')
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/\r/g, '\\r')
+        .replace(/\n/g, '\\n');
+}
+
 // 台股代碼對照表
 const taiwanStocks = {
     '2330': '台積電',
@@ -641,11 +659,11 @@ export function updateStockTable() {
         
         return `
             <tr>
-                <td>${record.date}</td>
-                <td>${record.market}</td>
-                <td>${record.assetType}</td>
-                <td>${record.code}</td>
-                <td>${record.name || record.code}</td>
+                <td>${escapeHtml(record.date)}</td>
+                <td>${escapeHtml(record.market)}</td>
+                <td>${escapeHtml(record.assetType)}</td>
+                <td>${escapeHtml(record.code)}</td>
+                <td>${escapeHtml(record.name || record.code)}</td>
                 <td class="${record.type === '買入' ? 'positive' : 'negative'}">${record.type}</td>
                 <td>${record.shares.toLocaleString()}</td>
                 <td>${record.price.toLocaleString()}</td>
@@ -653,7 +671,7 @@ export function updateStockTable() {
                 <td>${tax > 0 ? tax.toLocaleString() : '-'}</td>
                 <td>${currency} ${total}</td>
                 <td>
-                    <button class="icon-button" onclick="deleteStockRecord(${record.id})">
+                    <button class="icon-button" onclick="deleteStockRecord(${Number(record.id) || 0})">
                         <span class="material-icons">delete</span>
                     </button>
                 </td>
@@ -678,15 +696,15 @@ export function updateStockHoldingsTable() {
         
         return `
             <tr>
-                <td>${holding.market}</td>
-                <td>${holding.assetType}</td>
-                <td>${holding.code}</td>
-                <td>${holding.name || holding.code}</td>
+                <td>${escapeHtml(holding.market)}</td>
+                <td>${escapeHtml(holding.assetType)}</td>
+                <td>${escapeHtml(holding.code)}</td>
+                <td>${escapeHtml(holding.name || holding.code)}</td>
                 <td>${holding.totalShares.toLocaleString()}</td>
                 <td>${currency} ${holding.averagePrice.toFixed(2)}</td>
                 <td>${currency} ${totalValue.toLocaleString()}</td>
                 <td>
-                    <button class="outlined-button" onclick="quickSell('${holding.market}', '${holding.code}', ${holding.totalShares})">
+                    <button class="outlined-button" onclick="quickSell('${safeJsString(holding.market)}', '${safeJsString(holding.code)}', ${holding.totalShares})">
                         <span class="material-icons">sell</span>
                         快速賣出
                     </button>

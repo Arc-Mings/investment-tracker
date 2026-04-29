@@ -15,6 +15,16 @@ import { validateData } from '../data/dataStructure.js';
 import { updateAllTablesAndSummary } from './summary.js';
 import { calculateFundHoldings } from './portfolio.js';
 
+function escapeHtml(value) {
+    const text = String(value ?? '');
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 /**
  * 保存投資組合資料到 electron-store
  */
@@ -213,15 +223,15 @@ export function updateFundTable() {
     fundRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
     tableBody.innerHTML = fundRecords.map(record => `
         <tr>
-            <td>${record.date}</td>
+            <td>${escapeHtml(record.date)}</td>
             <td class="${(record.type === '贖回') ? 'negative' : 'positive'}">${record.type || '買入'}</td>
-            <td>${record.name}</td>
+            <td>${escapeHtml(record.name)}</td>
             <td>${record.amount.toLocaleString()}</td>
             <td>${record.nav.toFixed(4)}</td>
             <td>${record.units.toFixed(4)}</td>
             <td>${record.fee.toLocaleString()}</td>
             <td>
-                <button class="icon-button" onclick="deleteFundRecord(${record.id})">
+                <button class="icon-button" onclick="deleteFundRecord(${Number(record.id) || 0})">
                     <span class="material-icons">delete</span>
                 </button>
             </td>
@@ -250,7 +260,7 @@ export function updateFundHoldingsTable() {
         
         return `
             <tr>
-                <td>${holding.name}</td>
+                <td>${escapeHtml(holding.name)}</td>
                 <td>${holding.totalUnits.toFixed(4)}</td>
                 <td>${holding.averageNav.toFixed(4)}</td>
                 <td>${totalValue.toLocaleString()}</td>
