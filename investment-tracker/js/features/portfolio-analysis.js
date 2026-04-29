@@ -9,17 +9,8 @@
  */
 
 import { calculateStockHoldings, calculateFundHoldings, calculateCryptoHoldings } from './portfolio.js';
+import { escapeHtml } from '../core/security.js';
 import { showTab } from '../ui/uiManager.js';
-
-function escapeHtml(value) {
-    const text = String(value ?? '');
-    return text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
 
 /**
  * 格式化加密貨幣數量顯示（最多8位小數，去除尾隨零）
@@ -145,7 +136,13 @@ function updatePortfolioOverviewTable() {
             currentValue: currentValue.toLocaleString(),
             unrealizedPL: unrealizedPL,
             returnRate: returnRate,
-            currency: holding.market === '台股' ? 'TWD' : 'USD'
+            currency: holding.market === '台股' ? 'TWD' : 'USD',
+            actionType: 'quickSell',
+            actionPayload: {
+                market: holding.market,
+                code: holding.code,
+                totalShares: holding.totalShares
+            }
         });
     });
 
@@ -165,7 +162,11 @@ function updatePortfolioOverviewTable() {
             unrealizedPL: unrealizedPL,
             returnRate: returnRate,
             currency: 'TWD',
-            action: `quickRedeem('${holding.name}', ${holding.totalUnits})`
+            actionType: 'quickRedeem',
+            actionPayload: {
+                name: holding.name,
+                totalUnits: holding.totalUnits
+            }
         });
     });
 
@@ -185,6 +186,11 @@ function updatePortfolioOverviewTable() {
             unrealizedPL: unrealizedPL,
             returnRate: returnRate,
             currency: 'TWD',
+            actionType: 'quickSellCrypto',
+            actionPayload: {
+                symbol: holding.symbol,
+                totalAmount: holding.totalAmount
+            },
             symbol: holding.symbol, // 新增這個欄位用於單獨統計
             individualValue: currentValue // 新增這個欄位用於單獨統計
         });
@@ -215,13 +221,53 @@ function updatePortfolioOverviewTable() {
                 </span>
             </td>
             <td>
-                <button class="portfolio-action-btn" onclick="${holding.action}">
+                <button
+                    class="portfolio-action-btn"
+                    data-action-type="${escapeHtml(holding.actionType)}"
+                    data-action-payload="${escapeHtml(JSON.stringify(holding.actionPayload || {}))}"
+                >
                     <span class="material-icons">sell</span>
                     賣出
                 </button>
             </td>
         </tr>
     `).join('');
+
+    bindPortfolioActionEvents(tableBody);
+}
+
+function bindPortfolioActionEvents(tableBody) {
+    if (!tableBody || tableBody.dataset.actionBound === 'true') return;
+
+    tableBody.addEventListener('click', (event) => {
+        const button = event.target.closest('.portfolio-action-btn');
+        if (!button) return;
+
+        const actionType = button.dataset.actionType;
+        const payloadRaw = button.dataset.actionPayload || '{}';
+
+        let payload = {};
+        try {
+            payload = JSON.parse(payloadRaw);
+        } catch (error) {
+            console.warn('無效的持倉動作資料', error);
+            return;
+        }
+
+        if (actionType === 'quickSell' && typeof window.quickSell === 'function') {
+            window.quickSell(payload.market, payload.code, Number(payload.totalShares) || 0);
+            return;
+        }
+        if (actionType === 'quickRedeem' && typeof window.quickRedeem === 'function') {
+            window.quickRedeem(payload.name, Number(payload.totalUnits) || 0);
+            return;
+        }
+        if (actionType === 'quickSellCrypto' && typeof window.quickSellCrypto === 'function') {
+            window.quickSellCrypto(payload.symbol, Number(payload.totalAmount) || 0);
+        }
+    });
+
+    tableBody.dataset.actionBound = 'true';
 }
 
 /**

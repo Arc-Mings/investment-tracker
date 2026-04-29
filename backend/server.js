@@ -46,6 +46,10 @@ function requireWriteAuth(req, res, next) {
         return next();
     }
 
+    if (NODE_ENV === 'production' && !API_KEY) {
+        return res.status(503).json({ error: '伺服器未完成安全設定，請設定 API_KEY' });
+    }
+
     // 若設有 API_KEY，強制要求一致
     if (API_KEY) {
         const provided = req.header('x-api-key');
@@ -83,7 +87,7 @@ app.get('/api/records', async (req, res) => {
         const payments = await Payment.findAll();
         res.json({ stocks, funds, cryptos, properties, payments });
     } catch (error) {
-        res.status(500).json({ error: '獲取紀錄失敗', details: error });
+        res.status(500).json({ error: '獲取紀錄失敗' });
     }
 });
 

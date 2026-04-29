@@ -9,25 +9,8 @@
  */
 
 import { calculateStockHoldings, calculateFundHoldings, calculateCryptoHoldings } from './portfolio.js';
+import { escapeHtml, safeJsString } from '../core/security.js';
 import { showTab } from '../ui/uiManager.js';
-
-function escapeHtml(value) {
-    const text = String(value ?? '');
-    return text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
-
-function safeJsString(value) {
-    return String(value ?? '')
-        .replace(/\\/g, '\\\\')
-        .replace(/'/g, "\\'")
-        .replace(/\r/g, '\\r')
-        .replace(/\n/g, '\\n');
-}
 
 /**
  * 格式化加密貨幣數量顯示（最多8位小數，去除尾隨零）

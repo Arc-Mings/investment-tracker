@@ -10,28 +10,11 @@
  */
 
 import { stockRecords } from '../core/state.js';
+import { escapeHtml, safeJsString } from '../core/security.js';
 import { saveToLocalStorage } from '../data/storage.js';
 import { updateAllTablesAndSummary } from './summary.js';
 import { calculateStockHoldings, calculateProfitLoss } from './portfolio.js';
 import { queryStockName } from '../services/stockApiService.js';
-
-function escapeHtml(value) {
-    const text = String(value ?? '');
-    return text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
-
-function safeJsString(value) {
-    return String(value ?? '')
-        .replace(/\\/g, '\\\\')
-        .replace(/'/g, "\\'")
-        .replace(/\r/g, '\\r')
-        .replace(/\n/g, '\\n');
-}
 
 // 台股代碼對照表
 const taiwanStocks = {

@@ -8,18 +8,9 @@
  */
 
 import { propertyRecords, paymentRecords } from '../core/state.js';
+import { escapeHtml } from '../core/security.js';
 import { saveToLocalStorage } from '../data/storage.js';
 import { updateAllTablesAndSummary } from './summary.js';
-
-function escapeHtml(value) {
-    const text = String(value ?? '');
-    return text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
 
 /**
  * 初始化房產頁面

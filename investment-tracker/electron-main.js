@@ -41,9 +41,7 @@ function isAllowedStoreKey(key) {
 function getAllowedBaseDirs() {
     return [
         'E:/InvestmentData',
-        app.getPath('documents'),
-        app.getPath('downloads'),
-        app.getPath('desktop')
+        app.getPath('userData')
     ].map(dir => path.resolve(dir));
 }
 
@@ -201,20 +199,23 @@ ipcMain.handle('store-clear', () => {
 
 // 檔案操作
 ipcMain.handle('show-save-dialog', async () => {
+    const defaultDir = path.resolve('E:/InvestmentData');
     const result = await dialog.showSaveDialog(mainWindow, {
         filters: [
             { name: 'JSON 檔案', extensions: ['json'] }
         ],
-        defaultPath: path.join(app.getPath('documents'), 'investment-backup.json')
+        defaultPath: path.join(defaultDir, 'investment-backup.json')
     });
     return result;
 });
 
 ipcMain.handle('show-open-dialog', async () => {
+    const defaultDir = path.resolve('E:/InvestmentData');
     const result = await dialog.showOpenDialog(mainWindow, {
         filters: [
             { name: 'JSON 檔案', extensions: ['json'] }
         ],
+        defaultPath: defaultDir,
         properties: ['openFile']
     });
     return result;

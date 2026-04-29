@@ -8,19 +8,10 @@
  */
 
 import { propertyRecords, paymentRecords } from '../core/state.js';
+import { escapeHtml } from '../core/security.js';
 import { storeManager } from '../data/storeManager.js';
 import { validateData } from '../data/dataStructure.js';
 import { updateAllTablesAndSummary } from './summary.js';
-
-function escapeHtml(value) {
-    const text = String(value ?? '');
-    return text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
 
 /**
  * 保存投資組合資料到 electron-store
