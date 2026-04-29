@@ -9,7 +9,11 @@ const Fund = sequelize.define('Fund', {
     },
     name: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        validate: {
+            notEmpty: true,
+            len: [1, 120]
+        }
     },
     date: {
         type: DataTypes.DATEONLY,
@@ -17,18 +21,32 @@ const Fund = sequelize.define('Fund', {
     },
     amount: {
         type: DataTypes.FLOAT,
-        allowNull: false
+        allowNull: false,
+        validate: {
+            min: 0
+        }
     },
     nav: {
         type: DataTypes.FLOAT,
-        allowNull: false
+        allowNull: false,
+        validate: {
+            min: 0
+        }
     },
     units: {
         type: DataTypes.FLOAT,
-        allowNull: false
+        allowNull: false,
+        validate: {
+            min: 0
+        }
     },
     fee: {
-        type: DataTypes.FLOAT
+        type: DataTypes.FLOAT,
+        allowNull: false,
+        defaultValue: 0,
+        validate: {
+            min: 0
+        }
     }
 }, {
     tableName: 'funds',
